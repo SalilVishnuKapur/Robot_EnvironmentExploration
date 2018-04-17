@@ -9,7 +9,7 @@ class Exploration:
       ################################################################################################
 
 
-      def init(st_x, st_y, ed_x, ed_y, dt, mapp, move):
+      def init(self, st_x, st_y, ed_x, ed_y, dt, mapp, move):
           '''
           Variables initialization
           Parameters :-
@@ -20,21 +20,21 @@ class Exploration:
           '''
           self.start_x = st_x
           self.self.start_y = st_y
-          self.end_x = ed_x
-          self.end_y = ed_y
+          self.goal_x = ed_x
+          self.goal_y = ed_y
           self.inf = dt
           self.mapper = mapp
           self.mover = move
           #TODO:-Call Mapper and Move class
 
-      def distanceBetweenPoints(start_x, start_y, goal_x, goal_y):
+      def distanceBetweenPoints(self):
           '''
           Finds the distance between two points.
           '''
-          dis = ((goal_y - start_y)**2 +(goal_x - start_x)**2)**(1/2)
+          dis = ((self.goal_y - self.start_y)**2 +(self.goal_x - self.start_x)**2)**(1/2)
           return(dis)
 
-      def motionToGoal():
+      def motionToGoal(self):
           '''
           Motion-to-goal: Move to current Oi to
           minimize G(x), until goal (success) or
@@ -88,7 +88,7 @@ class Exploration:
          '''
          #TODO:-Call the movement method of the Move class
 
-      def controller():
+      def controller(self):
           if(self.danger(self.inf) == False):
               motionToGoal(self.self.start_x, self.self.start_y, self.end_x, self.end_y)
               self.inf = self.refereshMapping()
