@@ -16,6 +16,8 @@ class Executor:
           mapper = Mapping()
           mover = Move()
 
+          print("Hello") 
+
           for phase in range(1, 8):
               explore = Exploration(  , mapper, mover)  # 3. TODO Pass all the variable
               if(explore == True):
