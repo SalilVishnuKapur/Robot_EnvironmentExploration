@@ -1,5 +1,8 @@
 import math
-from Exploration import *
+from Exploration import Exploration
+from Mapper import Mapping
+from Move import Move
+
 
 class Executor:
       ################################################################################################
@@ -9,8 +12,11 @@ class Executor:
       if __name__ == '__main__':
           # 1. TODO hardcode all the 6 Coordinate Points
 
+          # 2. TODO Initialize The Mapper and the Move class
+          
+
           for phase in range(1, 8):
-              explore = Exploration()  # 2. TODO Pass all the variable
+              explore = Exploration()  # 3. TODO Pass all the variable
               if(explore == True):
                   print("Successfully Traversed Phase "+ str(phase))
               else:
