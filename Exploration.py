@@ -8,7 +8,6 @@ class Exploration:
       # 2. To Check if there is danger of rbot getting stuck in an alley or not being able to rotate #                         #
       ################################################################################################
 
-
       def init(self, st_x, st_y, ed_x, ed_y, dt, mapp, move):
           '''
           Variables initialization
@@ -19,13 +18,13 @@ class Exploration:
           ed_y : Final Goal of robot's y coordinate
           '''
           self.start_x = st_x
-          self.self.start_y = st_y
+          self.start_y = st_y
           self.goal_x = ed_x
           self.goal_y = ed_y
           self.inf = dt
           self.mapper = mapp
           self.mover = move
-          #TODO:-Call Mapper and Move class
+          self.danger = DangerChecker()
 
       def distanceBetweenPoints(self):
           '''
@@ -64,34 +63,36 @@ class Exploration:
                   if(minDistance > dis):
                      minDistance =  dis
                      minPoint = point
-
           return(minPoint)
 
-      def danger():
+      def danger(self):
           '''
           This will check for the folowing two conditions
           1. Whether the alley allows to get robot in
           2. If it is possible to take a turn
           '''
-          # TODO:- Call the danger class
-          return(True)
+          check = self.danger.check_alley_width(self.inf)
+          return(check)
 
-      def refereshMapping():
+      def refereshMapping(self):
          '''
          This will call the Mapping module to get the updated mapping as per the updated position of robot
          '''
          #TODO:-Call the mapping method of the Mapper class
+         data = self.mapper.update()
+         return(data)
 
-      def triggerMovement():
+      def triggerMovement(self):
          '''
          This will call the mover module to move the robot to its position a little
          '''
          #TODO:-Call the movement method of the Move class
+         self.mover.waypoint(self.goal_x, self.goal_y)
 
       def controller(self):
+          self.inf = self.refereshMapping()
           if(self.danger(self.inf) == False):
               motionToGoal(self.self.start_x, self.self.start_y, self.end_x, self.end_y)
-              self.inf = self.refereshMapping()
               self.triggerMovement()
               return(self.controller())
           else:
