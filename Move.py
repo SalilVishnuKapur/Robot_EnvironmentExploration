@@ -19,8 +19,8 @@ class Move:
         self.mL.ramp_up_sp = 1
 
         # in mm
-        self.axle_length = 59.5  # TODO: Sort out units (inches, mm are used in prevalance)
-        self.radius_wheel = 30.0
+        self.axle_length = 5.95  # cm, TODO: Sort out units (inches, mm are used in prevalance)
+        self.radius_wheel = 3.0
 
         self.x = x
         self.y = y

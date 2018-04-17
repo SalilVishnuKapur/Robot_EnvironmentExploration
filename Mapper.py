@@ -20,11 +20,11 @@ class Mapping:
         self.N_theta = int(360/scan_res)
 
         '''Initial Conditions, render a space'''
-        maxX, maxY = (30, 20)
+        maxX, maxY = (103.0, 87.5)
         minX = -maxX
         minY = -maxY
 
-        res = 1
+        res = 1  # cm
         numX = int((maxX - minX) / res)
         numY = int((maxX - minX) / res)
 
@@ -102,7 +102,6 @@ class Mapping:
             x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
 
             self.ZZ[y_idx, x_idx] = 1  # TODO: This is a great place to implement a sensor model.
-
 
     def update(self):
         """
