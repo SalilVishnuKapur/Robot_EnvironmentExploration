@@ -85,7 +85,7 @@ class Move:
 
         self.phi = angle
 
-    def waypoint_dumb(self, x_wp, y_wp):
+    def waypoint(self, x_wp, y_wp):
         """
         Drive in a straight line to a specified waypoint, dumb because there's no object avoidance.
 

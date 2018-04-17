@@ -126,12 +126,15 @@ class Mapping:
         for idx, theta in enumerate(sensor_theta):
 
             self.mS.run_to_rel_pos(position_sp=theta, stop_action='hold')
-            polar_length = util.append(polar_length, self.ultra1.distance_inches)
-            polar_angle = util.append(polar_angle, theta)
+            polar_length.append(self.ultra1.distance_inches)
+            polar_angle.append(theta)
 
         '''Turn sensor back to zero so the cord doesn't wrap'''
         self.mS.run_to_abs_pos(position_sp=0, stop_action='hold')
 
         '''Send measurements for processing'''
         self.update_occupancy_grid(robot_x, robot_y, polar_length, polar_angle)
+
+        '''Return 360 dict to exploration'''
+        for
 
