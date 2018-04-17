@@ -20,7 +20,8 @@ class Mapping:
         self.N_theta = int(360/scan_res)
 
         '''Initial Conditions, render a space'''
-        maxX, maxY = (103.0, 87.5)  # CM
+        maxX, maxY = (110, 100)  # Space is 103.0, 87.5 cm, so the rendered area is a bot larger to forgive misalignment
+
         minX = -maxX
         minY = -maxY
 
