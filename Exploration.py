@@ -96,5 +96,4 @@ class Exploration:
               self.triggerMovement()
               return(self.controller())
           else:
-              motionToGoal(self.self.start_x, self.self.start_y, self.end_x, self.end_y)
-              return("Backtrack")
+              return(True)
