@@ -1,5 +1,5 @@
 from util import Util as util
-import Move
+from Move import Move
 import math
 import ev3dev as ev3
 

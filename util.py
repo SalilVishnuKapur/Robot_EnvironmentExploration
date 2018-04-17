@@ -21,7 +21,7 @@ class Util:
 
         return X
 
-    def meshgrid(self, list1, list2):
+    def meshgrid(list1, list2):
         """
         Usage:
         X = range(0, 10, 1)
@@ -46,7 +46,7 @@ class Util:
         return XX_c, YY_c
 
 
-    def saturate(self, x, xmin, xmax):
+    def saturate(x, xmin, xmax):
         """
         Saturate or 'check' a value so that it lies between a predetermined range such that: min <= x <= max
 
@@ -63,7 +63,7 @@ class Util:
         return x
 
 
-    def wrap_angle(self, angle):
+    def wrap_angle(angle):
         """
         similar to saturate, make sure an angle is within 0 and 2pi radians such that math may be performed on it.
 
@@ -77,7 +77,7 @@ class Util:
 
         return angle
 
-    def min(self, array):
+    def min(array):
 
         minimum_elem = array[0]
         for num in array:
