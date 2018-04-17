@@ -5,7 +5,7 @@ class Util:
     def deg2rad(x):
         return(x * math.pi / 180)
 
-    def linspace(self, min, max, num):
+    def linspace(min, max, num):
         """
 
 
