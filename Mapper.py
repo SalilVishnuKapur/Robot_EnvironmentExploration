@@ -12,6 +12,7 @@ class Mapping:
         self.mS = ev3.MediumMotor('outD')  # mS = motor_sensor for the ultrasonic sensor to be rotated
         self.ultra1 = ev3.UltrasonicSensor()
         self.sensor_range = 100
+        self.gear_ratio = 28  # Motor must turn 28 times for 360 degrees turn of sensor
 
         self.mS.position = 0  # The sensor is zeroed with relation to the robot, which starts at pi/2 degrees global.
 
@@ -116,7 +117,9 @@ class Mapping:
         robot_x, robot_y, robot_phi = Move.pose()
 
         # No intelligent script to optimize angle to avoid wrapping the cord of the sensor
-        self.mS.run_to_abs_pos(position_sp=math.degrees(-robot_phi), stop_action='hold')
+        sensor_desired_position = math.degrees(-robot_phi)
+        motor_desired_position = sensor_desired_position*self.gear_ratio
+        self.mS.run_to_abs_pos(position_sp=motor_desired_position, stop_action='hold')
 
         polar_length = []
         polar_angle = []
@@ -125,7 +128,7 @@ class Mapping:
 
         for idx, theta in enumerate(sensor_theta):
 
-            self.mS.run_to_rel_pos(position_sp=theta, stop_action='hold')
+            self.mS.run_to_rel_pos(position_sp=theta*self.gear_ratio, stop_action='hold')
             polar_length.append(self.ultra1.distance_inches)
             polar_angle.append(theta)
 
