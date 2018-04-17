@@ -17,3 +17,9 @@ class Util:
                list1.append(x)
            YY_c.append(list1)
        return XX_c,YY_c
+    def minimum(array):
+	minimum_elem = array[0]
+	for num in array:
+	if num<minimum_elem:
+	    minimum_elem = num
+	return minimum_elem
