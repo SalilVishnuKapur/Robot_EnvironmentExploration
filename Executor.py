@@ -2,6 +2,7 @@ import math
 from Exploration import Exploration
 from Mapper import Mapping
 from Move import Move
+import ev3dev as ev3
 
 class Executor:
       ################################################################################################
@@ -24,14 +25,15 @@ class Executor:
           move = Move()
 
           # Iterating over the 7 phases
-          for pointer, phase in zip(range(1, 8), phases):
-              values = phase.values
+          for pointer, (key,phase) in enumerate(phases.items()):
+              print(phase)
+              values = phase
               From = values[0]
               To = values[1]
-              explore = Exploration(From[0], From[1], To[0], To[1], {}, mapper, mover)
+              explore = Exploration(From[0], From[1], To[0], To[1], {}, mapper, move)
               if(explore == True):
                   print("Successfully Traversed Phase "+ str(pointer))
               else:
                   print("Terminating Exploration of Environment")
-                  print("No. of phases explored :- "+ str(pointer-1))
+                  print("No. of phases explored :- "+ str(pointer))
                   break

@@ -1,6 +1,7 @@
 import math
 from util import Util as util
 import ev3dev as ev3
+from ev3dev.ev3 import *
 
 class Move:
 
@@ -10,8 +11,8 @@ class Move:
         y = 0
         phi = math.pi/2  # Given the robot begins facing north, it starts at 90 degrees.
 
-        self.mR = ev3.LargeMotor('outA')
-        self.mL = ev3.LargeMotor('outB')
+        self.mR = LargeMotor('outA')
+        self.mL = LargeMotor('outB')
 
         self.mR.ramp_down_sp = 1  # Take 1 full second to start/stop to avoid wheel slip from over-torque
         self.mL.ramp_down_sp = 1

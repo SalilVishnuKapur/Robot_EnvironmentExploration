@@ -5,7 +5,7 @@ class Util:
     def deg2rad(self, x):
         return(x * math.pi / 180)
 
-    def linspace(self, min, max, num):
+    def linspace(min, max, res):
         """
 
         :param min: the minimum value of the list
@@ -13,15 +13,16 @@ class Util:
         :param num:
         :return:
         """
-        res = (max - min) / num
+        # res = int((max - min) / num)
 
         X = []
+        print(min,max,res)
         for idx in range(min, max, res):
             X.append(idx)
 
         return X
 
-    def meshgrid(self, list1, list2):
+    def meshgrid(list1, list2):
         """
         Usage:
         X = range(0, 10, 1)

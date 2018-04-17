@@ -3,22 +3,23 @@ from Move import Move
 import math
 import ev3dev as ev3
 
+from ev3dev.ev3 import *
 
 class Mapping:
 
     def __init__(self):
 
         '''MAKE SURE THE SENSOR IS POINTED FORWARD AT START OF CODE (on-robot jig needs to be designed to do this)'''
-        self.mS = ev3.MediumMotor('outD')  # mS = motor_sensor for the ultrasonic sensor to be rotated
-        self.ultra1 = ev3.UltrasonicSensor()
+        self.mS = MediumMotor('outD')  # mS = motor_sensor for the ultrasonic sensor to be rotated
+        self.ultra1 = UltrasonicSensor()
         self.sensor_range = 100
         self.gear_ratio = 28  # Motor must turn 28 times for 360 degrees turn of sensor
 
         self.mS.position = 0  # The sensor is zeroed with relation to the robot, which starts at pi/2 degrees global.
 
         '''Angle resolution for scanning, in degrees'''
-        scan_res = 2.5
-        self.N_theta = int(360/scan_res)
+        self.scan_res = 2.5
+        self.N_theta = int(360/self.scan_res)
 
         '''Initial Conditions, render a space'''
         maxX, maxY = (110, 100)  # Space is 103.0, 87.5 cm, so the rendered area is a bot larger to forgive misalignment
@@ -30,8 +31,8 @@ class Mapping:
         numX = int((maxX - minX) / res)
         numY = int((maxX - minX) / res)
 
-        self.X = util.linspace(minX, maxX, (numX + 1))
-        self.Y = util.linspace(minY, maxY, (numY + 1))
+        self.X = util.linspace(minX, maxX, res)
+        self.Y = util.linspace(minY, maxY, res)
         self.XX, self.YY = util.meshgrid(self.X, self.Y)
 
         '''A matrix containing all the grid points in the rendered space, an occupancy grid, , for an obstacle probability to 
@@ -124,7 +125,7 @@ class Mapping:
         polar_length = []
         polar_angle = []
 
-        sensor_theta = util.linspace(0, 360, self.N_theta)
+        sensor_theta = util.linspace(0, 360, self.scan_res)
 
         for idx, theta in enumerate(sensor_theta):
 

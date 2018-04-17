@@ -1,6 +1,6 @@
 import math
 from util import Util
-
+from DangerChecker import DangerChecker
 class Exploration:
       ################################################################################################
       # Functionalities of this module are as follows :-                                             #
@@ -8,7 +8,7 @@ class Exploration:
       # 2. To Check if there is danger of rbot getting stuck in an alley or not being able to rotate #                         #
       ################################################################################################
 
-      def init(self, st_x, st_y, ed_x, ed_y, dt, mapp, move):
+      def __init__(self, st_x, st_y, ed_x, ed_y, dt, mapp, move):
           '''
           Variables initialization
           Parameters :-
