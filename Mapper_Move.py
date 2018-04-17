@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import ev3dev.ev3 as ev3
 
 

@@ -4,22 +4,43 @@ class Util:
     def deg2rad(x):
         return(x * math.pi / 180)
 
-    def custom_meshgrid(list1,list2):
-       list1_length = len(list1)
-       list2_length = len(list2)
-       XX_c = []
-       for i in range(list2_length):
-           XX_c.append(list1)
-       YY_c = []
-       for x in list2:
-           list1 = []
-           for i in range(list1_length):
-               list1.append(x)
-           YY_c.append(list1)
-       return XX_c,YY_c
-    def minimum(array):
-	minimum_elem = array[0]
-	for num in array:
-	if num<minimum_elem:
-	    minimum_elem = num
-	return minimum_elem
+    def linspace(self, min, max, num):
+        """
+
+
+        :param min: the minimum value of the list
+        :param max:
+        :param num:
+        :return:
+        """
+        res = (max - min) / num
+
+        X = []
+        for idx in range(min, max, res):
+            X.append(idx)
+
+        return X
+
+    def meshgrid(self, list1, list2):
+        """
+        Usage:
+        X = range(0, 10, 1)
+        Y = range(1, 12, 1)
+        XX, YY = custom_meshgrid(X, Y)
+        """
+
+        list1_length = len(list1)
+        list2_length = len(list2)
+
+        XX_c = []
+        for i in range(list2_length):
+            XX_c.append(list1)
+
+        YY_c = []
+        for x in list2:
+            list1 = []
+            for i in range(list1_length):
+                list1.append(x)
+            YY_c.append(list1)
+
+        return XX_c, YY_c
