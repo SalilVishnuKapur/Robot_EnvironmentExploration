@@ -8,7 +8,6 @@ class Util:
     def linspace(min, max, num):
         """
 
-
         :param min: the minimum value of the list
         :param max:
         :param num:
