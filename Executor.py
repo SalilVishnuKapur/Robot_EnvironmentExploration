@@ -10,11 +10,19 @@ class Executor:
       # 1. This is the executor script which initiates the Robot Exploration                         #
       ################################################################################################
       if __name__ == '__main__':
-          # 1. TODO hardcode all the 6 Coordinate Points
-          phases = {"Phase 1" : ()}
-          # 2. TODO Initialize The Mapper and the Move class
-          mapper = Mapping()
-          mover = Move()
+          '''Phases for the robot to attempt to travel around the space'''
+          # Robot space is 2*103, 2*87.5cm
+          start_phase = [53, -112.5]  # Start the robot 25cm away from centre of door
+          door_phase = [53, -87.5]
+          b_right_corner_phase = [90, -80]  # bottom_right_corner_phase
+          u_right_corner_phase = [90, 80]  # upper_right_corner_phase
+          u_left_corner_phase = [-90, 80]
+          b_left_corner_phase = [-90, -80]
+          centre_phase = [0,0]
+
+          '''Init Objects'''
+          mapping = Mapping
+          move = Move
 
           print("Hello") 
 
