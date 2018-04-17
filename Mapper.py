@@ -1,4 +1,5 @@
-import util
+from util import Util as util
+import Move
 import math
 import ev3dev as ev3
 
@@ -95,8 +96,8 @@ class Mapping:
             if ray is self.sensor_range:
                 ray = 1000
 
-            x_ray = robot_x + ray * np.cos(theta)  # cartesian components of the ray
-            y_ray = robot_y + ray * np.sin(theta)
+            x_ray = robot_x + ray * math.cos(theta)  # cartesian components of the ray
+            y_ray = robot_y + ray * math.sin(theta)
 
             x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
 
@@ -112,21 +113,21 @@ class Mapping:
         """
 
         '''Turn motor to zero degrees in global coordinate'''
-        robot_x, robot_y, robot_phi = RoboMove.pose()
+        robot_x, robot_y, robot_phi = Move.pose()
 
         # No intelligent script to optimize angle to avoid wrapping the cord of the sensor
-        self.mS.run_to_abs_pos(position_sp=np.rad2deg(-robot_phi), stop_action='hold')
+        self.mS.run_to_abs_pos(position_sp=math.degrees(-robot_phi), stop_action='hold')
 
-        polar_length = np.array([])
-        polar_angle = np.array([])
+        polar_length = []
+        polar_angle = []
 
-        sensor_theta = np.linspace(0, 360, self.N_theta)
+        sensor_theta = util.linspace(0, 360, self.N_theta)
 
         for idx, theta in enumerate(sensor_theta):
 
             self.mS.run_to_rel_pos(position_sp=theta, stop_action='hold')
-            polar_length = np.append(polar_length, self.ultra1.distance_inches)
-            polar_angle = np.append(polar_angle, theta)
+            polar_length = util.append(polar_length, self.ultra1.distance_inches)
+            polar_angle = util.append(polar_angle, theta)
 
         '''Turn sensor back to zero so the cord doesn't wrap'''
         self.mS.run_to_abs_pos(position_sp=0, stop_action='hold')

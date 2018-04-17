@@ -1,5 +1,5 @@
 import math
-import util
+from util import Util as util
 import ev3dev as ev3
 
 class Move:
@@ -8,7 +8,7 @@ class Move:
 
         x = 0
         y = 0
-        phi = np.pi/2  # Given the robot begins facing north, it starts at 90 degrees.
+        phi = math.pi/2  # Given the robot begins facing north, it starts at 90 degrees.
 
         self.mR = ev3.LargeMotor('outA')
         self.mL = ev3.LargeMotor('outB')
@@ -26,7 +26,7 @@ class Move:
         self.y = y
         self.phi = phi
 
-        self.rotation_tol = util.deg2rad(1)  # Tolerance as to when to stop turning
+        self.rotation_tol = math.radians(1)  # Tolerance as to when to stop turning
         self.turn_speed = 100  # speed to turn at, in deg/s
 
         self.fwd_speed = 100  # speed to drive forward at in deg/s
@@ -41,7 +41,7 @@ class Move:
         :return: rel_angle: signed float, radians centered about phi of robot. (positive is CW)
         """
 
-        rel_angle = util.arctan2(math.sin(phi-angle), math.cos(phi-angle))
+        rel_angle = math.atan2(math.sin(phi-angle), math.cos(phi-angle))
 
         return rel_angle
 
@@ -71,7 +71,7 @@ class Move:
         counts = (arc_len/wheel_rad)*(180/pi)
         '''
         arc_length_to_turn = abs(self.axle_length/2*rel_angle)
-        counts_in_turn = (arc_length_to_turn/self.radius_wheel)*(180/np.pi)
+        counts_in_turn = (arc_length_to_turn/self.radius_wheel)*(180/math.pi)
 
         if rel_angle > 1:  # turn clockwise
 
@@ -95,13 +95,13 @@ class Move:
         """
         # TODO: Add object bump detection to interrupt m.run_to_rel_pos while it moves.
         x, y, phi = self.pose()
-        angle = np.arctan2((y_wp-y), (x_wp-x))
+        angle = math.atan2((y_wp-y), (x_wp-x))
         self.turn(angle)
 
-        dist = np.sqrt((x_wp-x)**2 + (y_wp - y)**2)
+        dist = math.sqrt((x_wp-x)**2 + (y_wp - y)**2)
 
         # Turn dist into encoder counts using: counts = (dist/wheel_rad)*(180/pi)
-        counts_to_wp = (dist/self.radius_wheel) * (180/np.pi)
+        counts_to_wp = (dist/self.radius_wheel) * (180/math.pi)
 
         self.mL.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
         self.mR.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
