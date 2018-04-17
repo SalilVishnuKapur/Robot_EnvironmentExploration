@@ -3,7 +3,6 @@ from Exploration import Exploration
 from Mapper import Mapping
 from Move import Move
 
-
 class Executor:
       ################################################################################################
       # Functionalities of this module are as follows :-                                             #
@@ -12,40 +11,27 @@ class Executor:
       if __name__ == '__main__':
           '''Phases for the robot to attempt to travel around the space'''
           # Robot space is 2*103, 2*87.5cm
-          start_phase = [53, -112.5]  # Start the robot 25cm away from centre of door
-          door_phase = [53, -87.5]
-          b_right_corner_phase = [90, -80]  # bottom_right_corner_phase
-          u_right_corner_phase = [90, 80]  # upper_right_corner_phase
-          u_left_corner_phase = [-90, 80]
-          b_left_corner_phase = [-90, -80]
           centre_phase = [0,0]
 
-          '''Init Objects'''
-          mapping = Mapping
-          move = Move
+          # The 7 Phases
+          phases = {"Phase 1" : [(53, -112.5), (53, -87.5)], "Phase 2" : [(53, -87.5), (90, -80)],
+              "Phase 3" : [(90, -80), (90, 80)], "Phase 4" : [(90, 80), (-90, 80)],
+              "Phase 5" : [(-90, 80), (-90, -80)], "Phase 6" : [(-90, -80), (53, -87.5)],
+              "Phase 7" : [(53, -87.5), (53, -112.5)]}
 
-          print("Hello") 
+          #Init Objects
+          mapper = Mapping()
+          move = Move()
 
-          for phase in range(1, 8):
-              explore = Exploration(  , mapper, mover)  # 3. TODO Pass all the variable
+          # Iterating over the 7 phases
+          for pointer, phase in zip(range(1, 8), phases):
+              values = phase.values
+              From = values[0]
+              To = values[1]
+              explore = Exploration(From[0], From[1], To[0], To[1], {}, mapper, mover)
               if(explore == True):
-                  print("Successfully Traversed Phase "+ str(phase))
+                  print("Successfully Traversed Phase "+ str(pointer))
               else:
                   print("Terminating Exploration of Environment")
-                  print("No. of phases explored :- "+ str(phase-1))
+                  print("No. of phases explored :- "+ str(pointer-1))
                   break
-          '''
-          point0 = [[0, 0]]
-          point1 = [[3, 0]]
-          point2 = [[0, 3]]
-          point3 = [[3, 3]]
-          waypoints = [point1, point2, point3]
-
-          RoboMove = Move()
-          RoboMap = Mapping()
-
-          for wp in waypoints:
-              print(wp)
-              RoboMove.waypoint_dumb(wp[0][0], wp[0][1])
-              RoboMap.update()
-          '''
