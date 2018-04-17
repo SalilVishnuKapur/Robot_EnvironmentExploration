@@ -11,12 +11,13 @@ class Executor:
       ################################################################################################
       if __name__ == '__main__':
           # 1. TODO hardcode all the 6 Coordinate Points
-
+          phases = {"Phase 1" : ()}
           # 2. TODO Initialize The Mapper and the Move class
-          
+          mapper = Mapping()
+          mover = Move()
 
           for phase in range(1, 8):
-              explore = Exploration()  # 3. TODO Pass all the variable
+              explore = Exploration(  , mapper, mover)  # 3. TODO Pass all the variable
               if(explore == True):
                   print("Successfully Traversed Phase "+ str(phase))
               else:
