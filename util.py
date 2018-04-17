@@ -2,10 +2,10 @@ import math
 
 class Util:
 
-    def deg2rad(x):
+    def deg2rad(self, x):
         return(x * math.pi / 180)
 
-    def linspace(min, max, num):
+    def linspace(self, min, max, num):
         """
 
         :param min: the minimum value of the list
@@ -21,7 +21,7 @@ class Util:
 
         return X
 
-    def meshgrid(list1, list2):
+    def meshgrid(self, list1, list2):
         """
         Usage:
         X = range(0, 10, 1)
@@ -46,7 +46,7 @@ class Util:
         return XX_c, YY_c
 
 
-    def saturate(x, xmin, xmax):
+    def saturate(self, x, xmin, xmax):
         """
         Saturate or 'check' a value so that it lies between a predetermined range such that: min <= x <= max
 
@@ -62,8 +62,7 @@ class Util:
 
         return x
 
-
-    def wrap_angle(angle):
+    def wrap_angle(self, angle):
         """
         similar to saturate, make sure an angle is within 0 and 2pi radians such that math may be performed on it.
 
@@ -77,7 +76,7 @@ class Util:
 
         return angle
 
-    def min(array):
+    def min(self, array):
 
         minimum_elem = array[0]
         for num in array:
