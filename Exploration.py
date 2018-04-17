@@ -1,4 +1,5 @@
 import math
+from util import Util
 
 class Exploration:
       ################################################################################################
@@ -26,6 +27,13 @@ class Exploration:
           self.mover = move
           #TODO:-Call Mapper and Move class
 
+      def distanceBetweenPoints(start_x, start_y, goal_x, goal_y):
+          '''
+          Finds the distance between two points.
+          '''
+          dis = ((goal_y - start_y)**2 +(goal_x - start_x)**2)**(1/2)
+          return(dis)
+
       def motionToGoal():
           '''
           Motion-to-goal: Move to current Oi to
@@ -39,16 +47,16 @@ class Exploration:
               if(val < 999):
                  if((key-10 in self.inf.keys()) and (key+10 in self.inf.keys())):
                     # 2 Distance Comparison
-                    if(distanceBetweenPoints(self.start_x + self.inf[key-10] * np.cos(np.deg2rad(key-10)), self.start_y + self.inf[key-10] * np.sin(np.deg2rad(key-10)), self.start_x + self.inf[key] * np.cos(np.deg2rad(key)), self.start_y + self.inf[key] * np.sin(np.deg2rad(key))) > 3 or  distanceBetweenPoints(self.start_x + self.inf[key] * np.cos(np.deg2rad(key)), self.start_y + self.inf[key] * np.sin(np.deg2rad(key)), self.start_x + self.inf[key+10] * np.cos(np.deg2rad(key+10)), self.start_y + self.inf[key+10] * np.sin(np.deg2rad(key+10))) > 3):
-                       lt.append((self.start_x + val* np.cos(np.deg2rad(key)), self.start_y + val * np.sin(np.deg2rad(key))))
+                    if(distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3 or  distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 3):
+                       lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
                  elif(key-10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(distanceBetweenPoints(self.start_x + self.inf[key-10] * np.cos(np.deg2rad(key-10)), self.start_y + self.inf[key-10] * np.sin(np.deg2rad(key-10)), self.start_x + self.inf[key] * np.cos(np.deg2rad(key)), self.start_y + self.inf[key] * np.sin(np.deg2rad(key))) > 3):
-                       lt.append((self.start_x + val* np.cos(np.deg2rad(key)), self.start_y + val * np.sin(np.deg2rad(key))))
+                    if(distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
+                       lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
                  elif(key+10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(distanceBetweenPoints(self.start_x + self.inf[key-10] * np.cos(np.deg2rad(key-10)), self.start_y + self.inf[key-10] * np.sin(np.deg2rad(key-10)), self.start_x + self.inf[key] * np.cos(np.deg2rad(key)), self.start_y + self.inf[key] * np.sin(np.deg2rad(key))) > 3):
-                       lt.append((self.start_x + val* np.cos(np.deg2rad(key)), self.start_y + val * np.sin(np.deg2rad(key))))
+                    if(distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
+                       lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
           minDistance = 99999999999999
           minPoint = (0,0)
           for point in lt:
