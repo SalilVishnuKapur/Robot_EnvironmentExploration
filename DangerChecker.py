@@ -3,7 +3,7 @@ class DangerChecker:
    def __init__(self):
        self.threshold = 100
        self.min_points = 10
-   def check_alley_width(scan_points):
+   def check_alley_width(self, scan_points):
        '''
        This will check for the folowing two conditions
        1. Whether the alley allows to get robot in
@@ -15,7 +15,7 @@ class DangerChecker:
        for point in scan_points:
            if point>threshold:
                num_of_points += 1
-           else
+           else:
                if num_of_points>max_num_of_points:
                    max_num_of_points = num_of_points
                num_of_points = 0

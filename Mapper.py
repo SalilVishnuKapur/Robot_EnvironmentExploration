@@ -20,7 +20,7 @@ class Mapping:
         self.N_theta = int(360/scan_res)
 
         '''Initial Conditions, render a space'''
-        maxX, maxY = (103.0, 87.5)
+        maxX, maxY = (103.0, 87.5)  # CM
         minX = -maxX
         minY = -maxY
 
