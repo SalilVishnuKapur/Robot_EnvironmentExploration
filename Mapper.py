@@ -136,5 +136,5 @@ class Mapping:
         self.update_occupancy_grid(robot_x, robot_y, polar_length, polar_angle)
 
         '''Return 360 dict to exploration'''
-        for
+        return dict(zip(polar_angle, polar_length))
 
