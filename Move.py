@@ -67,27 +67,26 @@ class Move:
         x, y, phi = self.pose()
 
         rel_angle = self.get_rel_angle(phi, angle)
-
+        print('Turning robot ' + str(math.degrees(rel_angle)) + 'degrees')
         '''
         Get desired encoder position to complete the turn from arc_len = r*theta[rad] and 
         counts = (arc_len/wheel_rad)*(180/pi)
         '''
-        arc_length_to_turn = abs(self.axle_length/2*rel_angle)
-        counts_in_turn = (arc_length_to_turn/self.radius_wheel)*(180/math.pi)
-
+        arc_length_to_turn = abs((self.axle_length/2)*rel_angle)
+        counts_in_turn = int((arc_length_to_turn/self.radius_wheel)*(180/math.pi))
         if rel_angle > 1:  # turn clockwise
 
             self.mL.run_to_rel_pos(position_sp=counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
-            self.mR.run_to_rel_pos(position_sp=-counts_in_turn, speed_sp=-self.turn_speed, stop_action='hold')
-            mL.wait_while('running')
-            mR.wait_while('running')
+            self.mR.run_to_rel_pos(position_sp=-counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
+            self.mL.wait_while('running')
+            self.mR.wait_while('running')
             
         else:  # Turn CCW
 
-            self.mL.run_to_rel_pos(position_sp=-counts_in_turn, speed_sp=-self.turn_speed, stop_action='hold')
+            self.mL.run_to_rel_pos(position_sp=-counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
             self.mR.run_to_rel_pos(position_sp=counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
-            mL.wait_while('running')
-            mR.wait_while('running')
+            self.mL.wait_while('running')
+            self.mR.wait_while('running')
  
         self.phi = angle
 
@@ -108,11 +107,11 @@ class Move:
         print('Turning to ' + str(angle) + ' and driving distance of ' + str(dist) + ' towards phase target')
         self.turn(angle)
         # Turn dist into encoder counts using: counts = (dist/wheel_rad)*(180/pi)
-        counts_to_wp = (dist/self.radius_wheel) * (180/math.pi)
+        counts_to_wp = int((dist/self.radius_wheel) * (180/math.pi))
 
         self.mL.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
         self.mR.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
-        mL.wait_while('running')
-        mR.wait_while('running')
+        self.mL.wait_while('running')
+        self.mR.wait_while('running')
 
         self.x, self.y = x_wp, y_wp

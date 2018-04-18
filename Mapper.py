@@ -19,7 +19,7 @@ class Mapping:
         self.mS.position = 0  # The sensor is zeroed with relation to the robot, which starts at pi/2 degrees global.
 
         '''Angle resolution for scanning, in degrees'''
-        self.scan_res = 5
+        self.scan_res = 10
         self.N_theta = int(360/self.scan_res)
         self.max_range = 255.0
         '''Initial Conditions, render a space'''
@@ -126,8 +126,8 @@ class Mapping:
 
         # No intelligent script to optimize angle to avoid wrapping the cord of the sensor
         sensor_desired_position = math.degrees(-robot_phi)
-        motor_desired_position = sensor_desired_position*self.gear_ratio
-        self.mS.run_to_abs_pos(position_sp=motor_desired_position, speed_sp=900, stop_action='hold')
+        motor_desired_position = -sensor_desired_position*self.gear_ratio  # negative because the gears are backwards
+        self.mS.run_to_abs_pos(position_sp=motor_desired_position, speed_sp=1500, stop_action='hold')
 
         polar_length = []
         polar_angle = []
@@ -135,7 +135,7 @@ class Mapping:
         sensor_theta = util.frange(0, 360, self.scan_res)
         for idx, theta in enumerate(sensor_theta):
 
-            self.mS.run_to_abs_pos(position_sp=theta*self.gear_ratio+motor_desired_position, stop_action='hold')
+            self.mS.run_to_abs_pos(position_sp=-(theta*self.gear_ratio+motor_desired_position), stop_action='hold')
             self.mS.wait_while('running')
             length = self.ultra1.distance_centimeters
             if length > self.max_range:
@@ -144,11 +144,11 @@ class Mapping:
             polar_angle.append(theta)
 
         '''Turn sensor back to zero so the cord doesn't wrap'''
-        self.mS.run_to_abs_pos(position_sp=0, speed_sp=1000, stop_action='hold')
+        self.mS.run_to_abs_pos(position_sp=0, speed_sp=1500, stop_action='hold')
 
         '''Send measurements for processing'''
         self.update_occupancy_grid(robot_x, robot_y, polar_length, polar_angle)
-        print(polar_length)
+        #print(polar_length)
         '''Return 360 dict to exploration'''
         return dict(zip(polar_angle, polar_length))
 

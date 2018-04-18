@@ -1,6 +1,8 @@
 import math
 from util import Util
 from DangerChecker import DangerChecker
+import collections
+
 class Exploration:
       ################################################################################################
       # Functionalities of this module are as follows :-                                             #
@@ -26,14 +28,14 @@ class Exploration:
           self.mover = move
           self.dangerChecker = DangerChecker()
 
-      def distanceBetweenPoints(self):
+      def distanceBetweenPoints(self, st_x, st_y, end_x, end_y):
           '''
           Finds the distance between two points.
           '''
-          dis = ((self.goal_y - self.start_y)**2 +(self.goal_x - self.start_x)**2)**(1/2)
+          dis = ((end_y - st_y)**2 +(end_x - st_x)**2)**(1/2)
           return(dis)
 
-      def slopeAngle(dy, dx):
+      def slopeAngle(self, dy, dx):
           '''
           Returns the angle which is the slope of
           a line.
@@ -43,7 +45,7 @@ class Exploration:
              angle += 360
           return(angle)
 
-      def rangeOrientation(angle):
+      def angleOrientation(self, angle):
         '''
         This is used to setup the orientation for every time the robot progresses.
         The orientation is 180 degree range towards to goal so that robot doesn't
@@ -65,9 +67,22 @@ class Exploration:
 
       def infSetter(self):
           sensorOrientation = {}
+          lt = []
           for key, val in self.inf.items():
               if(key in self.rangeAngles):
                  sensorOrientation[key] = val
+          #sensorInf = dict(sorted(sensorOrientation.items()))
+          sensorOrientation = collections.OrderedDict(sorted(sensorOrientation.items()))
+          '''
+          for key in sorted(sensorOrientation.keys()):
+              lt.append((key, sensorOrientation[key]))
+          for couple in lt:
+              sensorInf[couple[0]] = couple[1]
+          print(lt)
+          '''
+          print("***************************")
+          print(sensorOrientation)
+          print("***************************")
           return(sensorOrientation)
 
 
@@ -80,8 +95,11 @@ class Exploration:
           '''
           lt = []
           count = 0
-          for key, val in self.inf.items():
-              if(val < 999):
+          print("----------------------")
+          print(self.inf)
+          print("----------------------")
+          for key, val in self.inf.items():   
+              if(val < 255.0):
                  if((key-10 in self.inf.keys()) and (key+10 in self.inf.keys())):
                     # 2 Distance Comparison
                     if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3 or  self.distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 3):
@@ -92,7 +110,7 @@ class Exploration:
                        lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
                  elif(key+10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
                        lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
           minDistance = 99999999999999
           minPoint = (0,0)
@@ -113,30 +131,29 @@ class Exploration:
           return(check)
 
       def refereshMapping(self):
-         '''
-         This will call the Mapping module to get the updated mapping as per the updated position of robot
-         '''
-         #TODO:-Call the mapping method of the Mapper class
+          '''
+          This will call the Mapping module to get the updated mapping as per the updated position of robot
+          '''
+          #TODO:-Call the mapping method of the Mapper class
 
-         data = self.mapper.update(self.mover)
-         print(data)
-         return(data)
+          data = self.mapper.update(self.mover)
+          return(data)
 
       def triggerMovement(self,tempx,tempy):
-         '''
-         This will call the mover module to move the robot to its position a little
-         '''
-         #TODO:-Call the movement method of the Move class
-         print("Trigger Movement")
-         self.mover.waypoint(tempx, tempy)
+          '''
+          This will call the mover module to move the robot to its position a little
+          '''
+          #TODO:-Call the movement method of the Move class
+          print("Trigger Movement")
+          self.mover.waypoint(tempx, tempy)
 
       def controller(self):
           self.inf = self.refereshMapping()
-          print(self.inf)
           if(True or self.danger() == False):
               angle = self.slopeAngle(self.goal_y - self.start_y, self.goal_x - self.start_x)
               self.rangeAngles = self.angleOrientation(angle)
-              self.inf = self.infSetter(self.rangeAngles)
+              self.inf = self.infSetter()
+              print(self.inf)
               self.start_x,self.start_y = self.motionToGoal()
               print("Inside controller",self.start_x,self.start_y)
               self.triggerMovement(self.start_x,self.start_y)
