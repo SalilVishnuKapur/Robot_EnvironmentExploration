@@ -33,6 +33,44 @@ class Exploration:
           dis = ((self.goal_y - self.start_y)**2 +(self.goal_x - self.start_x)**2)**(1/2)
           return(dis)
 
+      def slopeAngle(dy, dx):
+          '''
+          Returns the angle which is the slope of
+          a line.
+          '''
+          angle = math.degrees(math.atan2(dy, dx))
+          if(angle <= 0):
+             angle += 360
+          return(angle)
+
+      def rangeOrientation(angle):
+        '''
+        This is used to setup the orientation for every time the robot progresses.
+        The orientation is 180 degree range towards to goal so that robot doesn't
+        walk in the backward direction.
+        '''
+        if(90 <= angle <= 270):
+           minTheta = int(angle - 90)
+           maxTheta = int(angle + 90)
+           limit = list(range(minTheta, maxTheta+1))
+        elif(0 <= angle < 90):
+           maxTheta = int(angle + 90)
+           minTheta = 360 + int(angle - 90)
+           limit = list(range(0, maxTheta+1)) + list(range(minTheta, 361))
+        elif(270 < angle <= 360):
+           maxTheta = 360 - int(angle + 90)
+           minTheta = int(angle - 90)
+           limit = list(range(minTheta, 360+1)) + list(range(0, maxTheta+1))
+        return(limit)
+
+      def infSetter(self):
+          sensorOrientation = {}
+          for key, val in self.inf.items():
+              if(key in self.rangeAngles):
+                 sensorOrientation[key] = val
+          return(sensorOrientation)
+
+
       def motionToGoal(self):
           '''
           Motion-to-goal: Move to current Oi to
@@ -79,7 +117,7 @@ class Exploration:
          This will call the Mapping module to get the updated mapping as per the updated position of robot
          '''
          #TODO:-Call the mapping method of the Mapper class
-         
+
          data = self.mapper.update(self.mover)
          print(data)
          return(data)
@@ -96,9 +134,12 @@ class Exploration:
           self.inf = self.refereshMapping()
           print(self.inf)
           if(True or self.danger() == False):
-              x,y = self.motionToGoal()
-              print("Inside controller",x,y)
-              self.triggerMovement(x,y)
+              angle = self.slopeAngle(self.goal_y - self.start_y, self.goal_x - self.start_x)
+              self.rangeAngles = self.angleOrientation(angle)
+              self.inf = self.infSetter(self.rangeAngles)
+              self.start_x,self.start_y = self.motionToGoal()
+              print("Inside controller",self.start_x,self.start_y)
+              self.triggerMovement(self.start_x,self.start_y)
               return(self.controller())
           else:
               return(True)
