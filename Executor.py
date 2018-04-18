@@ -31,6 +31,7 @@ class Executor:
               From = values[0]
               To = values[1]
               explore = Exploration(From[0], From[1], To[0], To[1], {}, mapper, move)
+              explore = explore.controller()
               if(explore == True):
                   print("Successfully Traversed Phase "+ str(pointer))
               else:

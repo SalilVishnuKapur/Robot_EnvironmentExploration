@@ -24,7 +24,7 @@ class Exploration:
           self.inf = dt
           self.mapper = mapp
           self.mover = move
-          self.danger = DangerChecker()
+          self.dangerChecker = DangerChecker()
 
       def distanceBetweenPoints(self):
           '''
@@ -46,20 +46,20 @@ class Exploration:
               if(val < 999):
                  if((key-10 in self.inf.keys()) and (key+10 in self.inf.keys())):
                     # 2 Distance Comparison
-                    if(distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3 or  distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 3):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3 or  self.distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 3):
                        lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
                  elif(key-10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
                        lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
                  elif(key+10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
                        lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
           minDistance = 99999999999999
           minPoint = (0,0)
           for point in lt:
-                  dis = distanceBetweenPoints(self.start_x, self.start_y, point[0], point[1]) + distanceBetweenPoints(point[0], point[1], self.goal_x, self.goal_y)
+                  dis = self.distanceBetweenPoints(self.start_x, self.start_y, point[0], point[1]) + self.distanceBetweenPoints(point[0], point[1], self.goal_x, self.goal_y)
                   if(minDistance > dis):
                      minDistance =  dis
                      minPoint = point
@@ -71,7 +71,7 @@ class Exploration:
           1. Whether the alley allows to get robot in
           2. If it is possible to take a turn
           '''
-          check = self.danger.check_alley_width(self.inf)
+          check = self.dangerChecker.check_alley_width(self.inf)
           return(check)
 
       def refereshMapping(self):
@@ -79,21 +79,26 @@ class Exploration:
          This will call the Mapping module to get the updated mapping as per the updated position of robot
          '''
          #TODO:-Call the mapping method of the Mapper class
-         data = self.mapper.update()
+         
+         data = self.mapper.update(self.mover)
+         print(data)
          return(data)
 
-      def triggerMovement(self):
+      def triggerMovement(self,tempx,tempy):
          '''
          This will call the mover module to move the robot to its position a little
          '''
          #TODO:-Call the movement method of the Move class
-         self.mover.waypoint(self.goal_x, self.goal_y)
+         print("Trigger Movement")
+         self.mover.waypoint(tempx, tempy)
 
       def controller(self):
           self.inf = self.refereshMapping()
-          if(self.danger(self.inf) == False):
-              motionToGoal(self.self.start_x, self.self.start_y, self.end_x, self.end_y)
-              self.triggerMovement()
+          print(self.inf)
+          if(True or self.danger() == False):
+              x,y = self.motionToGoal()
+              print("Inside controller",x,y)
+              self.triggerMovement(x,y)
               return(self.controller())
           else:
               return(True)

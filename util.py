@@ -2,7 +2,7 @@ import math
 
 class Util:
 
-    def deg2rad(self, x):
+    def deg2rad(x):
         return(x * math.pi / 180)
 
     def linspace(min, max, res):
@@ -47,7 +47,7 @@ class Util:
         return XX_c, YY_c
 
 
-    def saturate(self, x, xmin, xmax):
+    def saturate(x, xmin, xmax):
         """
         Saturate or 'check' a value so that it lies between a predetermined range such that: min <= x <= max
 
@@ -63,7 +63,7 @@ class Util:
 
         return x
 
-    def wrap_angle(self, angle):
+    def wrap_angle(angle):
         """
         similar to saturate, make sure an angle is within 0 and 2pi radians such that math may be performed on it.
 
@@ -77,11 +77,31 @@ class Util:
 
         return angle
 
-    def min(self, array):
+    def min(array):
 
         minimum_elem = array[0]
-        for num in array:
+        for idx, num in enumerate(array):
             if num < minimum_elem:
                 minimum_elem = num
 
-        return minimum_elem
+        return idx
+
+    def frange(start, end=None, inc=None):
+
+    	if end == None:
+        	end = start + 0.0
+        	start = 0.0
+
+    	if inc == None:
+        	inc = 1.0
+	
+    	L = []
+    	while 1:
+        	next = start + len(L) * inc
+        	if inc > 0 and next >= end:
+            		break
+        	elif inc < 0 and next <= end:
+            		break
+        	L.append(next)
+        
+    	return L

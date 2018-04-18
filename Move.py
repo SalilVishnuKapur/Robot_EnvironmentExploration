@@ -1,4 +1,5 @@
 import math
+import time
 from util import Util as util
 import ev3dev as ev3
 from ev3dev.ev3 import *
@@ -78,12 +79,16 @@ class Move:
 
             self.mL.run_to_rel_pos(position_sp=counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
             self.mR.run_to_rel_pos(position_sp=-counts_in_turn, speed_sp=-self.turn_speed, stop_action='hold')
-
+            mL.wait_while('running')
+            mR.wait_while('running')
+            
         else:  # Turn CCW
 
             self.mL.run_to_rel_pos(position_sp=-counts_in_turn, speed_sp=-self.turn_speed, stop_action='hold')
             self.mR.run_to_rel_pos(position_sp=counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
-
+            mL.wait_while('running')
+            mR.wait_while('running')
+ 
         self.phi = angle
 
     def waypoint(self, x_wp, y_wp):
@@ -97,14 +102,17 @@ class Move:
         # TODO: Add object bump detection to interrupt m.run_to_rel_pos while it moves.
         x, y, phi = self.pose()
         angle = math.atan2((y_wp-y), (x_wp-x))
-        self.turn(angle)
 
         dist = math.sqrt((x_wp-x)**2 + (y_wp - y)**2)
 
+        print('Turning to ' + str(angle) + ' and driving distance of ' + str(dist) + ' towards phase target')
+        self.turn(angle)
         # Turn dist into encoder counts using: counts = (dist/wheel_rad)*(180/pi)
         counts_to_wp = (dist/self.radius_wheel) * (180/math.pi)
 
         self.mL.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
         self.mR.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
+        mL.wait_while('running')
+        mR.wait_while('running')
 
         self.x, self.y = x_wp, y_wp
