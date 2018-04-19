@@ -6,14 +6,14 @@ from ev3dev.ev3 import *
 
 class Move:
 
-    def __init__(self):
+    def __init__(self, initx, inity):
 
-        x = 0
-        y = 0
+        x = initx
+        y = inity
         phi = math.pi/2  # Given the robot begins facing north, it starts at 90 degrees.
 
-        self.mR = LargeMotor('outA')
-        self.mL = LargeMotor('outB')
+        self.mR = LargeMotor('outB')
+        self.mL = LargeMotor('outA')
 
         self.mR.ramp_down_sp = 1  # Take 1 full second to start/stop to avoid wheel slip from over-torque
         self.mL.ramp_down_sp = 1
@@ -103,15 +103,18 @@ class Move:
         angle = math.atan2((y_wp-y), (x_wp-x))
 
         dist = math.sqrt((x_wp-x)**2 + (y_wp - y)**2)
-
-        print('Turning to ' + str(angle) + ' and driving distance of ' + str(dist) + ' towards phase target')
+        print('### Move to Waypoint ###')
+        print('Robot currently at [x, y, phi]: [' + str(x) + ', ' + str(y) + ', ' + str(phi) + ']')
+        print('Turning to ' + str(math.degrees(angle)) + ' and driving distance of ' + str(dist) + ' towards target')
         self.turn(angle)
         # Turn dist into encoder counts using: counts = (dist/wheel_rad)*(180/pi)
         counts_to_wp = int((dist/self.radius_wheel) * (180/math.pi))
-
+        print('Drive forward ' + str(counts_to_wp) + ' encoder counts')
+        
         self.mL.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
         self.mR.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
         self.mL.wait_while('running')
         self.mR.wait_while('running')
 
         self.x, self.y = x_wp, y_wp
+        print('### Move Complete ###')

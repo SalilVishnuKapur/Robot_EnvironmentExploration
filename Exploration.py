@@ -80,9 +80,11 @@ class Exploration:
               sensorInf[couple[0]] = couple[1]
           print(lt)
           '''
+          '''
           print("***************************")
           print(sensorOrientation)
           print("***************************")
+          '''
           return(sensorOrientation)
 
 
@@ -95,9 +97,9 @@ class Exploration:
           '''
           lt = []
           count = 0
-          print("----------------------")
-          print(self.inf)
-          print("----------------------")
+          #print("----------------------")
+          #print(self.inf)
+          #print("----------------------")
           for key, val in self.inf.items():   
               if(val < 255.0):
                  if((key-10 in self.inf.keys()) and (key+10 in self.inf.keys())):
@@ -144,7 +146,7 @@ class Exploration:
           This will call the mover module to move the robot to its position a little
           '''
           #TODO:-Call the movement method of the Move class
-          print("Trigger Movement")
+          print("Trigger Movement to [" + str(tempx) + ", " + str(tempy) + "]")
           self.mover.waypoint(tempx, tempy)
 
       def controller(self):
@@ -153,9 +155,9 @@ class Exploration:
               angle = self.slopeAngle(self.goal_y - self.start_y, self.goal_x - self.start_x)
               self.rangeAngles = self.angleOrientation(angle)
               self.inf = self.infSetter()
-              print(self.inf)
+              #print(self.inf)
               self.start_x,self.start_y = self.motionToGoal()
-              print("Inside controller",self.start_x,self.start_y)
+              print("Inside controller. Going to: ",self.start_x,self.start_y)
               self.triggerMovement(self.start_x,self.start_y)
               return(self.controller())
           else:

@@ -13,7 +13,8 @@ class Executor:
           '''Phases for the robot to attempt to travel around the space'''
           # Robot space is 2*103, 2*87.5cm
           centre_phase = [0,0]
-
+          robot_start_posx, robot_start_posy = [53, -112.5]
+          
           # The 7 Phases
           phases = {"Phase 1" : [(53, -112.5), (53, -87.5)], "Phase 2" : [(53, -87.5), (90, -80)],
               "Phase 3" : [(90, -80), (90, 80)], "Phase 4" : [(90, 80), (-90, 80)],
@@ -21,8 +22,8 @@ class Executor:
               "Phase 7" : [(53, -87.5), (53, -112.5)]}
 
           #Init Objects
-          mapper = Mapping()
-          move = Move()
+          move = Move(robot_start_posx, robot_start_posy)
+          mapper = Mapping(move)
 
           # Iterating over the 7 phases
           for pointer, (key,phase) in enumerate(phases.items()):

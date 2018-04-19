@@ -1,6 +1,8 @@
+
 from util import Util as util
 import math
 import time
+from Move import Move
 import ev3dev as ev3
 import csv
 
@@ -8,18 +10,18 @@ from ev3dev.ev3 import *
 
 class Mapping:
 
-    def __init__(self, Move):
+    def __init__(self):
 
         '''MAKE SURE THE SENSOR IS POINTED FORWARD AT START OF CODE (on-robot jig needs to be designed to do this)'''
         self.mS = MediumMotor('outD')  # mS = motor_sensor for the ultrasonic sensor to be rotated
         self.ultra1 = UltrasonicSensor()
-        self.sensor_range = 100
+        self.sensor_range = 255.0
         self.gear_ratio = -28  # Motor must turn 28 times for 1 turn of sensor
 
         self.mS.position = 0  # The sensor is zeroed with relation to the robot, which starts at pi/2 degrees global.
 
         '''Angle resolution for scanning, in degrees'''
-        self.scan_res = 10
+        self.scan_res = 2
         self.N_theta = int(360/self.scan_res)
         self.max_range = 255.0
         '''Initial Conditions, render a space'''
@@ -107,8 +109,8 @@ class Mapping:
             y_ray = robot_y + ray * math.sin(math.radians(polar_angle[idx]))
 
             x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
-            print('Ray end point: ',x_ray,y_ray,'Index: ',x_idx,y_idx) 	
-            self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
+            # print('Ray end point: ',x_ray,y_ray,'Index: ',x_idx,y_idx) 	
+            self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + 1  # TODO: This is a great place to implement a sensor model.
 
         # Write to file so that the meshgrid may be viewed to pass the project.
         # COMMAND:
@@ -116,8 +118,11 @@ class Mapping:
         with open("occupancy_grid.csv", "w") as f:
             writer = csv.writer(f)
             writer.writerows(self.ZZ)
+        with open("vfh.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerows(zip(polar_angle, polar_length))     
 
-    def update(self,move):
+    def update(self):
         """
         Turn the ultrasonic sensor to zero degrees global, and then scan 360 degrees, send the results to get updated in
         the occupancy grid.
@@ -127,7 +132,7 @@ class Mapping:
         print('Updating world map...')
 
         '''Turn motor to zero degrees in global coordinate'''
-        robot_x, robot_y, robot_phi = move.pose()
+        robot_x, robot_y, robot_phi = [0, 0, math.pi/2]
 
         # No intelligent script to optimize angle to avoid wrapping the cord of the sensor
         sensor_desired_position = math.degrees(-robot_phi)
@@ -157,4 +162,14 @@ class Mapping:
         #print(polar_length)
         '''Return 360 dict to exploration'''
         return dict(zip(polar_angle, polar_length))
+
+if __name__ == '__main__':
+    mapper = Mapping()
+    for num in range(0,10):
+        mapper.update()
+        print(num)        
+
+
+
+    
 

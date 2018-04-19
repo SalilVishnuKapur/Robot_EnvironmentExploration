@@ -79,12 +79,13 @@ class Util:
 
     def min(array):
 
-        minimum_elem = array[0]
+        minimum_elem = 8000
         for idx, num in enumerate(array):
             if num < minimum_elem:
                 minimum_elem = num
+                minimum_idx = idx
 
-        return idx
+        return minimum_idx
 
     def frange(start, end=None, inc=None):
 
