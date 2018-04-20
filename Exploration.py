@@ -130,15 +130,15 @@ class Exploration:
               if(val < 255.0):
                  if((key-10 in self.inf.keys()) and (key+10 in self.inf.keys())):
                     # 2 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3 or  self.distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 3):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 60 or  self.distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 60):
                        lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
                  elif(key-10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 60):
                        lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
                  elif(key+10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 60):
                        lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
           minDistance = 99999999999999
           minPoint = (self.goal_x, self.goal_y)

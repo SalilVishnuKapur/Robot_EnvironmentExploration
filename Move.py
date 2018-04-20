@@ -79,15 +79,15 @@ class Move:
         '''
         arc_length_to_turn = abs((self.axle_length/2)*rel_angle)
         counts_in_turn = int((arc_length_to_turn/self.radius_wheel)*(180/math.pi))
-        if rel_angle > 1:  # turn clockwise
-
+        
+        if(rel_angle > 1):  # turn clockwise
             self.mL.run_to_rel_pos(position_sp=counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
             self.mR.run_to_rel_pos(position_sp=-counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
             self.mL.wait_while('running')
             self.mR.wait_while('running')
-            
+        elif(counts_in_turn is 0):
+            print("Don't do anything")
         else:  # Turn CCW
-
             self.mL.run_to_rel_pos(position_sp=-counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
             self.mR.run_to_rel_pos(position_sp=counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
             self.mL.wait_while('running')
