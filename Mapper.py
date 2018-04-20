@@ -46,7 +46,10 @@ class Mapping:
 
         '''Threshold for obstacle detection'''
         self.obs_threshold = 0.2
-
+        self.sensor_model_variance_x = 2
+        self.sensor_model_variance_y = 2
+        self.resolution = res
+	
     def coord_to_index(self, x, y):
         """
         Take in the meshgrid XX and YY matrixes, and a point of interest. Return the closest coordinate on the meshgrid in
@@ -156,4 +159,15 @@ class Mapping:
         #print(polar_length)
         '''Return 360 dict to exploration'''
         return dict(zip(polar_angle, polar_length))
+    
+    #def update_grid_point(robot_x,robot_y):
+    #
+    #	for idx, ray in enumerate(polar_length):
+    #	
+    #        x_ray = robot_x + ray * math.cos(math.radians(polar_angle[idx]))  # cartesian components of the ray
+    #        y_ray = robot_y + ray * math.sin(math.radians(polar_angle[idx]))
+    #
+    #        x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
+            #print('Ray end point: ',x_ray,y_ray,'Index: ',x_idx,y_idx) 	
+    #        self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
 
