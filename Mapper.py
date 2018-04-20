@@ -3,7 +3,6 @@ import math
 import time
 import ev3dev as ev3
 import csv
-
 from ev3dev.ev3 import *
 
 class Mapping:
@@ -107,7 +106,7 @@ class Mapping:
             y_ray = robot_y + ray * math.sin(math.radians(polar_angle[idx]))
 
             x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
-            print('Ray end point: ',x_ray,y_ray,'Index: ',x_idx,y_idx) 	
+            #print('Ray end point: ',x_ray,y_ray,'Index: ',x_idx,y_idx) 	
             self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
 
         # Write to file so that the meshgrid may be viewed to pass the project.
@@ -124,14 +123,14 @@ class Mapping:
 
         :return:
         """
-        print('Updating world map...')
+        #print('Updating world map...')
 
         '''Turn motor to zero degrees in global coordinate'''
         robot_x, robot_y, robot_phi = move.pose()
 
         # No intelligent script to optimize angle to avoid wrapping the cord of the sensor
         sensor_desired_position = math.degrees(-robot_phi)
-        print('Robot thinks sensor should turn: ',sensor_desired_position,' degrees to zero')
+        #print('Robot thinks sensor should turn: ',sensor_desired_position,' degrees to zero')
         motor_desired_position = int(sensor_desired_position*self.gear_ratio)
         self.mS.run_to_abs_pos(position_sp=motor_desired_position, speed_sp=1500, stop_action='hold')
 
@@ -144,8 +143,8 @@ class Mapping:
             self.mS.run_to_abs_pos(position_sp=(theta*self.gear_ratio+motor_desired_position), stop_action='hold')
             self.mS.wait_while('running')
             length = self.ultra1.distance_centimeters
-            if length >= self.max_range:
-                length = 5*self.max_range  # Make the measurement inf incase the sensor doesn't read in range
+            #if length >= self.max_range:
+            #    length = 5*self.max_range  # Make the measurement inf incase the sensor doesn't read in range
             polar_length.append(length)
             polar_angle.append(theta)
 

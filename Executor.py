@@ -16,19 +16,18 @@ class Executor:
           robot_start_posx, robot_start_posy = [53, -112.5]
           
           # The 7 Phases
-          phases = {"Phase 1" : [(53, -112.5), (53, -87.5)], "Phase 2" : [(53, -87.5), (90, -80)],
+          phases = {"Phase 1" : [(53, -112.5), (53, -80)], "Phase 2" : [(53, -80), (90, -80)],
               "Phase 3" : [(90, -80), (90, 80)], "Phase 4" : [(90, 80), (-90, 80)],
-              "Phase 5" : [(-90, 80), (-90, -80)], "Phase 6" : [(-90, -80), (53, -87.5)],
-              "Phase 7" : [(53, -87.5), (53, -112.5)]}
+              "Phase 5" : [(-90, 80), (-90, -80)], "Phase 6" : [(-90, -80), (53, -80)],
+              "Phase 7" : [(53, -80), (53, -112.5)]}
 
           #Init Objects
           move = Move(robot_start_posx, robot_start_posy)
           mapper = Mapping(move)
 
           # Iterating over the 7 phases
-          for pointer, (key,phase) in enumerate(phases.items()):
-              print(phase)
-              values = phase
+          for pointer in range(1, 8):
+              values = phases["Phase "+ str(pointer)]   
               From = values[0]
               To = values[1]
               explore = Exploration(From[0], From[1], To[0], To[1], {}, mapper, move)

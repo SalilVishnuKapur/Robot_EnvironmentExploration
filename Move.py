@@ -15,14 +15,19 @@ class Move:
         self.mR = LargeMotor('outB')
         self.mL = LargeMotor('outA')
 
-        self.mR.ramp_down_sp = 1  # Take 1 full second to start/stop to avoid wheel slip from over-torque
-        self.mL.ramp_down_sp = 1
-        self.mR.ramp_up_sp = 1
-        self.mL.ramp_up_sp = 1
+        self.mR.ramp_down_sp = 0  # Take 1 full second to start/stop to avoid wheel slip from over-torque
+        self.mL.ramp_down_sp = 0
+        self.mR.ramp_up_sp = 0
+        self.mL.ramp_up_sp = 0
 
         # in mm
-        self.axle_length = 5.95  # cm, TODO: Sort out units (inches, mm are used in prevalance)
-        self.radius_wheel = 3.0
+        self.axle_length = (90/94.34)*13.97  # cm, TODO: Sort out units (inches, mm are used in prevalance)
+        ''' Wheel radius calculation:
+        0.04728723cm forward/encoder count (1 deg rotation=pi/180rad)
+        forward = r*theta
+        forward/theta = r
+        '''
+        self.radius_wheel = 0.04728723/(math.pi/180)
 
         self.x = x
         self.y = y
@@ -104,7 +109,7 @@ class Move:
 
         dist = math.sqrt((x_wp-x)**2 + (y_wp - y)**2)
         print('### Move to Waypoint ###')
-        print('Robot currently at [x, y, phi]: [' + str(x) + ', ' + str(y) + ', ' + str(phi) + ']')
+        print('Robot currently at [x, y, phi]: [' + str(x) + ', ' + str(y) + ', ' + str(math.degrees(phi)) + ']')
         print('Turning to ' + str(math.degrees(angle)) + ' and driving distance of ' + str(dist) + ' towards target')
         self.turn(angle)
         # Turn dist into encoder counts using: counts = (dist/wheel_rad)*(180/pi)

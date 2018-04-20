@@ -46,24 +46,24 @@ class Exploration:
           return(angle)
 
       def angleOrientation(self, angle):
-        '''
-        This is used to setup the orientation for every time the robot progresses.
-        The orientation is 180 degree range towards to goal so that robot doesn't
-        walk in the backward direction.
-        '''
-        if(90 <= angle <= 270):
-           minTheta = int(angle - 90)
-           maxTheta = int(angle + 90)
-           limit = list(range(minTheta, maxTheta+1))
-        elif(0 <= angle < 90):
-           maxTheta = int(angle + 90)
-           minTheta = 360 + int(angle - 90)
-           limit = list(range(0, maxTheta+1)) + list(range(minTheta, 361))
-        elif(270 < angle <= 360):
-           maxTheta = 360 - int(angle + 90)
-           minTheta = int(angle - 90)
-           limit = list(range(minTheta, 360+1)) + list(range(0, maxTheta+1))
-        return(limit)
+          '''
+          This is used to setup the orientation for every time the robot progresses.
+          The orientation is 180 degree range towards to goal so that robot doesn't
+          walk in the backward direction.
+          '''
+          if(90 <= angle <= 270):
+             minTheta = int(angle - 90)
+             maxTheta = int(angle + 90)
+             limit = list(range(minTheta, maxTheta+1))
+          elif(0 <= angle < 90):
+             maxTheta = int(angle + 90)
+             minTheta = 360 + int(angle - 90)
+             limit = list(range(0, maxTheta+1)) + list(range(minTheta, 361))
+          elif(270 < angle <= 360):
+             maxTheta = 90 - int(360 - angle)
+             minTheta = int(angle - 90)
+             limit = list(range(minTheta, 360+1)) + list(range(0, maxTheta+1))
+          return(limit)
 
       def infSetter(self):
           sensorOrientation = {}
@@ -73,21 +73,39 @@ class Exploration:
                  sensorOrientation[key] = val
           #sensorInf = dict(sorted(sensorOrientation.items()))
           sensorOrientation = collections.OrderedDict(sorted(sensorOrientation.items()))
-          '''
-          for key in sorted(sensorOrientation.keys()):
-              lt.append((key, sensorOrientation[key]))
-          for couple in lt:
-              sensorInf[couple[0]] = couple[1]
-          print(lt)
-          '''
-          '''
-          print("***************************")
-          print(sensorOrientation)
-          print("***************************")
-          '''
           return(sensorOrientation)
 
+      def rangeAnalytics(self):
+          remainder = self.angle%10.0
+          if(remainder == 0):
+               if(self.angle == 0):
+                  avg = (self.inf[10] + self.inf[0] + self.inf[350])/3
+                  if(self.present_Distance_From_Goal < avg):
+                     return(True)
+               elif(self.angle == 360):
+                  avg = (self.inf[10] + self.inf[0] + self.inf[350])/3
+                  if(self.present_Distance_From_Goal < avg):
+                     return(True)
+               else:
+                  avg = (self.inf[self.angle - 10] + self.inf[self.angle] + self.inf[self.angle + 10])/3
+                  if(self.present_Distance_From_Goal < avg):
+                     return(True)
+          else:
+               if(0 < self.angle < 10):
+                  avg = (self.inf[self.angle - remainder] + self.inf[self.angle -remainder  + 10] )/2
+                  if(self.present_Distance_From_Goal < avg):
+                     return(True)
+               elif(350 < self.angle < 360):
+                  avg = (self.inf[self.angle - remainder] + self.inf[0])/2
+                  if(self.present_Distance_From_Goal < avg):
+                     return(True)
+               else:
+                  avg = (self.inf[self.angle - remainder] + self.inf[self.angle - remainder + 10])/2
+                  if(self.present_Distance_From_Goal < avg):
+                     return(True)
+          return(False)
 
+                  
       def motionToGoal(self):
           '''
           Motion-to-goal: Move to current Oi to
@@ -97,9 +115,17 @@ class Exploration:
           '''
           lt = []
           count = 0
-          #print("----------------------")
-          #print(self.inf)
-          #print("----------------------")
+          print("----------------------")
+          print(self.inf)
+          print("Start x"+ str(self.start_x))
+          print("Start y"+ str(self.start_y))
+          print("Goal x"+ str(self.goal_x))
+          print("Goal y"+ str(self.goal_y))
+ 
+          # Here we are checking if there is no obstacle between initial to goal position
+          if(self.rangeAnalytics()):
+              return((self.goal_x, self.goal_y))
+
           for key, val in self.inf.items():   
               if(val < 255.0):
                  if((key-10 in self.inf.keys()) and (key+10 in self.inf.keys())):
@@ -115,12 +141,14 @@ class Exploration:
                     if(self.distanceBetweenPoints(self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
                        lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
           minDistance = 99999999999999
-          minPoint = (0,0)
+          minPoint = (self.goal_x, self.goal_y)
           for point in lt:
                   dis = self.distanceBetweenPoints(self.start_x, self.start_y, point[0], point[1]) + self.distanceBetweenPoints(point[0], point[1], self.goal_x, self.goal_y)
                   if(minDistance > dis):
                      minDistance =  dis
                      minPoint = point
+          print(minPoint)
+          print("----------------------")
           return(minPoint)
 
       def danger(self):
@@ -151,9 +179,10 @@ class Exploration:
 
       def controller(self):
           self.inf = self.refereshMapping()
-          if(True or self.danger() == False):
-              angle = self.slopeAngle(self.goal_y - self.start_y, self.goal_x - self.start_x)
-              self.rangeAngles = self.angleOrientation(angle)
+          if(self.distanceBetweenPoints(self.start_x, self.start_y, self.goal_x, self.goal_y) > 10  and self.danger() == False):
+              self.angle = self.slopeAngle(self.goal_y - self.start_y, self.goal_x - self.start_x)
+              self.present_Distance_From_Goal = self.distanceBetweenPoints(self.start_x, self.start_y, self.goal_x, self.goal_y)
+              self.rangeAngles = self.angleOrientation(self.angle)
               self.inf = self.infSetter()
               #print(self.inf)
               self.start_x,self.start_y = self.motionToGoal()
