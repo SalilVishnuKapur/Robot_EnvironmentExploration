@@ -46,9 +46,12 @@ class Mapping:
 
         '''Threshold for obstacle detection'''
         self.obs_threshold = 0.2
-        self.sensor_model_variance_x = 2
-        self.sensor_model_variance_y = 2
+        self.sensor_model_variance = 2
         self.resolution = res
+	self.minX = minX
+	self.minY = minY
+	self.maxX = maxX
+	self.maxY = maxY
 	
     def coord_to_index(self, x, y):
         """
@@ -110,7 +113,8 @@ class Mapping:
 
             x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
             #print('Ray end point: ',x_ray,y_ray,'Index: ',x_idx,y_idx) 	
-            self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
+            #self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
+            update_grid_point(x_idx,y_idx) # updating the grid points values according to a gaussian model
 
         # Write to file so that the meshgrid may be viewed to pass the project.
         # COMMAND:
@@ -160,14 +164,15 @@ class Mapping:
         '''Return 360 dict to exploration'''
         return dict(zip(polar_angle, polar_length))
     
-    #def update_grid_point(robot_x,robot_y):
-    #
-    #	for idx, ray in enumerate(polar_length):
-    #	
-    #        x_ray = robot_x + ray * math.cos(math.radians(polar_angle[idx]))  # cartesian components of the ray
-    #        y_ray = robot_y + ray * math.sin(math.radians(polar_angle[idx]))
-    #
-    #        x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
-            #print('Ray end point: ',x_ray,y_ray,'Index: ',x_idx,y_idx) 	
-    #        self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
-
+    def update_grid_point(mu_x,mu_y):
+        
+        sigma = self.sensor_model_variance
+        for x in range(self.minX,self.maxX):
+        	for y in range(self.minY,self.maxY):
+    			self.ZZ[y][x] = self.1/(2*pi*sigma**2)*exp(-1*( ((x-mu_x)**2) + ((y-mu_y)**2) )/(2*sigma*sigma))
+    	
+    	
+    	
+    		
+		
+		
