@@ -149,21 +149,21 @@ class Mapping:
         for idx in enumerate(middle_line_x):
 
             if self.test_index(middle_line_x[idx], middle_line_y[idx]):
-                path_clear = True
+                path_clear = False
                 print('Cannot complete direct line to goal - Object in way - Centre line')
                 break
 
             if self.test_index(left_line_x[idx], left_line_y[idx]):
-                path_clear = True
+                path_clear = False
                 print('Cannot complete direct line to goal - Object in way - Left side')
                 break
 
             if self.test_index(right_line_x[idx], right_line_y[idx]):
-                path_clear = True
+                path_clear = False
                 print('Cannot complete direct line to goal - Object in way - Right side')
                 break
 
-            path_clear = False
+            path_clear = True
 
         return path_clear
 

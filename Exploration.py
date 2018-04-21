@@ -182,7 +182,7 @@ class Exploration:
           '''
           #TODO:-Call the movement method of the Move class
           print("Trigger Movement to [" + str(tempx) + ", " + str(tempy) + "]")
-          self.mover.waypoint(tempx, tempy)
+          self.mover.waypoint(tempx, tempy, self.mapper)
 
       def controller(self):
           self.inf = self.refereshMapping()
