@@ -121,6 +121,7 @@ class Mapping:
         middle_line_x = util.frange(x1, x2, resx)
         middle_line_y = util.frange(y1, y2, resy)
 
+
         '''Left line points'''
         x1l = x1 + self.width / 2 * math.cos(theta + math.pi)
         x2l = x2 + self.width / 2 * math.cos(theta + math.pi)
