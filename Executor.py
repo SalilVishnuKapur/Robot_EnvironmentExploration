@@ -37,14 +37,15 @@ class Executor:
           #Init Objects
           move = Move(robot_start_posx, robot_start_posy)
           mapper = Mapping(move)
+          priorInf = {}
 
           # Iterating over the 7 phases
           for pointer in range(1, 8):
               values = phases["Phase "+ str(pointer)]   
               From = values[0]
               To = values[1]
-              explore = Exploration(From[0], From[1], To[0], To[1], {}, mapper, move)
-              explore = explore.controller()
+              explore = Exploration(From[0], From[1], To[0], To[1], {}, mapper, move, priorInf)
+              priorInf, explore = explore.controller()
               if(explore == True):
                   print("Successfully Traversed Phase "+ str(pointer))
               else:

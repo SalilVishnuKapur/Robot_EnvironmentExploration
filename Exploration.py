@@ -10,7 +10,7 @@ class Exploration:
       # 2. To Check if there is danger of rbot getting stuck in an alley or not being able to rotate #                         #
       ################################################################################################
 
-      def __init__(self, st_x, st_y, ed_x, ed_y, dt, mapp, move):
+      def __init__(self, st_x, st_y, ed_x, ed_y, dt, mapp, move, prevInf):
           '''
           Variables initialization
           Parameters :-
@@ -26,6 +26,7 @@ class Exploration:
           self.inf = dt
           self.mapper = mapp
           self.mover = move
+          self.priorInf = prevInf
           self.dangerChecker = DangerChecker()
 
       def distanceBetweenPoints(self, st_x, st_y, end_x, end_y):
@@ -133,20 +134,21 @@ class Exploration:
           if(self.rangeAnalytics()):
               return((self.goal_x, self.goal_y))
 
+          # We find discontinuity if difference is greater than 3 and a deltaX of 5 is taken while calculating the pint to motion  
           for key, val in self.inf.items():   
               if(val < 255.0):
                  if((key-10 in self.inf.keys()) and (key+10 in self.inf.keys())):
                     # 2 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 30 or  self.distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 30):
-                       lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3 or  self.distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 3):
+                       lt.append((self.start_x + (val-5)* math.cos(Util.deg2rad(key)), self.start_y + (val-5)* math.sin(Util.deg2rad(key))))
                  elif(key-10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 30):
-                       lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
+                       lt.append((self.start_x + (val-5)* math.cos(Util.deg2rad(key)), self.start_y + (val-5) * math.sin(Util.deg2rad(key))))
                  elif(key+10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 30):
-                       lt.append((self.start_x + val* math.cos(Util.deg2rad(key)), self.start_y + val * math.sin(Util.deg2rad(key))))
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
+                       lt.append((self.start_x + (val-5)* math.cos(Util.deg2rad(key)), self.start_y + (val-5) * math.sin(Util.deg2rad(key))))
           minDistance = 99999999999999
           minPoint = (self.goal_x, self.goal_y)
           for point in lt:
@@ -183,9 +185,17 @@ class Exploration:
           #TODO:-Call the movement method of the Move class
           print("Trigger Movement to [" + str(tempx) + ", " + str(tempy) + "]")
           self.mover.waypoint(tempx, tempy, self.mapper)
+ 
+      def priorInf(self):
+          if(self.priorInf == {}):
+             return("Do_Mapper_Scan")
+          else:
+             self.inf = self.priorInf
+             self.priorInf = {}
 
       def controller(self):
-          self.inf = self.refereshMapping()
+          if(priorInf() == "Do_Mapper_Scan"):
+              self.inf = self.refereshMapping()
           if(self.distanceBetweenPoints(self.start_x, self.start_y, self.goal_x, self.goal_y) > 10  and self.danger() == False):
               self.angle = self.slopeAngle(self.goal_y - self.start_y, self.goal_x - self.start_x)
               self.present_Distance_From_Goal = self.distanceBetweenPoints(self.start_x, self.start_y, self.goal_x, self.goal_y)
