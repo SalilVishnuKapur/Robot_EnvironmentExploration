@@ -101,6 +101,9 @@ class Mapping:
 
     def check_path(self, x1, y1, x2, y2):
         """
+        Check if the path the robot intends to drive along is clear of obstacles.
+
+        Method:
         Draw three lines along the robots path and check if they collide with any of the objects on the occupancy grid
 
         :param move: The movement object
