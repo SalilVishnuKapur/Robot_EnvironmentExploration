@@ -75,7 +75,11 @@ class Exploration:
           sensorOrientation = collections.OrderedDict(sorted(sensorOrientation.items()))
           return(sensorOrientation)
 
+
+
       def rangeAnalytics(self):
+
+          '''
           remainder = self.angle%10.0
           if(remainder == 0):
                if(self.angle == 0):
@@ -104,6 +108,9 @@ class Exploration:
                   if(self.present_Distance_From_Goal < avg):
                      return(True)
           return(False)
+          '''
+
+          return (self.mapper.check_path(self.start_x, self.start_y, self.goal_x, self.goal_y))
 
                   
       def motionToGoal(self):
