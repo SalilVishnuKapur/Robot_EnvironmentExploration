@@ -1,8 +1,9 @@
 import math
 import time
 from util import Util as util
-import ev3dev as ev3
+
 from ev3dev.ev3 import *
+import numpy as np
 
 class Move:
 
@@ -15,10 +16,19 @@ class Move:
         self.mR = LargeMotor('outB')
         self.mL = LargeMotor('outA')
 
-        self.mR.ramp_down_sp = 0  # Take 1 full second to start/stop to avoid wheel slip from over-torque
-        self.mL.ramp_down_sp = 0
+        self.mR.ramp_down_sp = 0.5  # Take 1 full second to start/stop to avoid wheel slip from over-torque
+        self.mL.ramp_down_sp = 0.5
         self.mR.ramp_up_sp = 0
         self.mL.ramp_up_sp = 0
+
+        self.gyro = GyroSensor()
+        self.bump = Touchensor()
+
+        self.gyro.mode = 'GYRO_ANG'
+
+        '''Turning Kalman filter info'''
+        self.mu_turn = math.pi/2
+        self.S_turn = np.array([[0, 0], [0, 0]])
 
         # in mm
         self.axle_length = (90/94.34)*13.97  # cm, TODO: Sort out units (inches, mm are used in prevalance)
@@ -59,6 +69,77 @@ class Move:
 
         return self.x, self.y, self.phi
 
+    def object_hit_routine(self, mapper_obj):
+        """
+        The robot has hit an object that has tripped the bump sensor. The robot has already recorded the location that
+        this has occurred at. This method will back the robot up and also assign an obstacle on the occupancy grid to
+        represent the obstacle that was hit, but evidently not detected by the ultrasonic sensor.
+
+        :return: None.
+        """
+        bump_sensor_offset = 5  # cm, the distance from the bump sensor to the centre of the robot
+        bumper_width = 14  # cm
+        backup_dist = -10  # cm
+        x, y, phi = self.pose()
+
+        '''Step 1: Update the occupancy grid to reflect the hit object in the form of a line'''
+
+        # Step 1a: Determine the centre of the bumper on the occupancy grid
+        x_c = x + bump_sensor_offset * math.cos(phi)
+        y_c = y + bump_sensor_offset * math.sin(phi)
+
+        # Step 1b: Determine the left and right sides of the bumper on the occupancy grid
+        x_l = x_c + bumper_width / 2 * math.cos(phi + math.pi)
+        x_r = x_c + bumper_width / 2 * math.cos(phi - math.pi)
+        y_l = y_c + bumper_width / 2 * math.sin(phi + math.pi)
+        y_r = y_c + bumper_width / 2 * math.sin(phi - math.pi)
+
+        # Step 1c: create two linspace objects to represent the x and y values of the bumper line
+        N = bumper_width/(mapper_obj.resolution/2)  # Ensure the resolution of the lines is much smaller than the grid to avoid gaps
+
+        resx = (x_l - x_r) / N
+        resy = (y_l - y_r) / N
+
+        bumper_line_x = util.frange(x_l, x_r, resx)
+        bumper_line_y = util.frange(y_l, y_r, resy)
+
+        mapper_obj.update_grid_bump(bumper_line_x, bumper_line_y)
+
+        '''Step 2: Back the robot up'''
+        counts_to_wp = int((backup_dist / self.radius_wheel) * (180 / math.pi))
+        print('[Object hit. Reversing ' + str(backup_dist) + ' cm]')
+
+        self.mL.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
+        self.mR.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
+
+
+
+    def kalman_f_turn(self, rel_angle):
+        """
+        Perform Kalman filtering on a turn to update the robot phi angle.
+
+        Method:
+        Using the gyro as the sensor feedback. Predicted position is what was commanded by the turn method.
+
+        :param angle:
+        :return:
+        """
+        A = 1
+        B = 1
+        C = math.pi/180  #
+        Q = 1.5  # Measurement noise
+
+        '''Prediction'''
+        mup = A*self.mu_turn + B*rel_angle
+        Sp = A*self.S_turn*np.transpose(A) + np.eye(len(A*self.S_turn*np.transpose(A))) * Q
+
+        '''Filter implementation'''
+        K = Sp*np.transpose(C) + np.linalg.inv(C*Sp*np.transpose(C) + np.eye(len(A*self.S_turn*np.transpose(A))) * Q)
+        self.mu_turn = mup + K * (self.gyro.value() - C*mup)  # Gyro returns angle in degrees
+        self.S_turn = (np.eye(len(K*C)) - K*C)*Sp
+
+        self.phi = self.mu_turn
+
     def turn(self, angle):
         """
         Turn the robot to a specified heading using the ev3dev built in closed loop control functions. Turns the robot
@@ -93,9 +174,9 @@ class Move:
             self.mL.wait_while('running')
             self.mR.wait_while('running')
  
-        self.phi = angle
+        self.kalman_f_turn(rel_angle)
 
-    def waypoint(self, x_wp, y_wp):
+    def waypoint(self, x_wp, y_wp, mapper_obj):
         """
         Drive in a straight line to a specified waypoint, dumb because there's no object avoidance.
 
@@ -115,11 +196,42 @@ class Move:
         # Turn dist into encoder counts using: counts = (dist/wheel_rad)*(180/pi)
         counts_to_wp = int((dist/self.radius_wheel) * (180/math.pi))
         print('Drive forward ' + str(counts_to_wp) + ' encoder counts')
+
+        start_counts_l = self.mL.position()
+        start_counts_r = self.mR.position()
         
         self.mL.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
         self.mR.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
-        self.mL.wait_while('running')
-        self.mR.wait_while('running')
 
-        self.x, self.y = x_wp, y_wp
+        while self.mL.is_running():
+            if self.bump.is_pressed():
+                self.mL.stop(stop_action='hold')
+                self.mR.stop(stop_action='hold')
+
+                # Beep beep
+                Sound.tone(620, 100)  # Tone, in Hz, duration in ms
+                time.sleep(0.1)
+                Sound.tone(620, 100)
+
+                # Find position of left motor
+                mL_x = x + ((self.mL.position() - start_counts_l) / counts_to_wp) * dist * math.cos(angle)
+                mL_y = y + ((self.mL.position() - start_counts_l) / counts_to_wp) * dist * math.sin(angle)
+
+                # Find position of right motor
+                mR_x = x + ((self.mR.position() - start_counts_r) / counts_to_wp) * dist * math.cos(angle)
+                mR_y = y + ((self.mR.position() - start_counts_r) / counts_to_wp) * dist * math.sin(angle)
+
+                # Assign new robot current position to class variables
+                self.x = (mL_x + mR_x) / 2
+                self.y = (mL_y + mR_y) / 2
+
+                self.object_hit_routine(mapper_obj)
+                break
+            else:
+                self.x, self.y = x_wp, y_wp
+
+
+        self.mR.wait_while('running')  # Wait for the right motor to stop running (shouldn't be much longer than left)
+
+        # TODO: Return the x and y values of where the robot is at for the exploration to make use of
         print('### Move Complete ###')

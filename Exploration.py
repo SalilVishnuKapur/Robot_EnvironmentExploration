@@ -75,7 +75,11 @@ class Exploration:
           sensorOrientation = collections.OrderedDict(sorted(sensorOrientation.items()))
           return(sensorOrientation)
 
+
+
       def rangeAnalytics(self):
+
+          '''
           remainder = self.angle%10.0
           if(remainder == 0):
                if(self.angle == 0):
@@ -104,6 +108,9 @@ class Exploration:
                   if(self.present_Distance_From_Goal < avg):
                      return(True)
           return(False)
+          '''
+          #return
+          return (self.mapper.check_path(self.start_x, self.start_y, self.goal_x, self.goal_y))
 
                   
       def motionToGoal(self):
@@ -175,7 +182,7 @@ class Exploration:
           '''
           #TODO:-Call the movement method of the Move class
           print("Trigger Movement to [" + str(tempx) + ", " + str(tempy) + "]")
-          self.mover.waypoint(tempx, tempy)
+          self.mover.waypoint(tempx, tempy, self.mapper)
 
       def controller(self):
           self.inf = self.refereshMapping()
