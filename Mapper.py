@@ -121,8 +121,8 @@ class Mapping:
         resx = (x1 - x2) / N
         resy = (y1 - y2) / N
 
-        middle_line_x = util.frange(x1, x2, resx)
-        middle_line_y = util.frange(y1, y2, resy)
+        middle_line_x = util.linspace_n(x1, x2, resx)
+        middle_line_y = util.linspace_n(y1, y2, resy)
 
 
         '''Left line points'''
@@ -131,8 +131,8 @@ class Mapping:
         y1l = y1 + self.width / 2 * math.sin(theta + math.pi)
         y2l = y2 + self.width / 2 * math.sin(theta + math.pi)
 
-        left_line_x = util.frange(x1l, x2l, resx)
-        left_line_y = util.frange(y1l, y2l, resy)
+        left_line_x = util.linspace_n(x1l, x2l, resx)
+        left_line_y = util.linspace_n(y1l, y2l, resy)
 
         '''Right line points'''
         x1r = x1 + self.width / 2 * math.cos(theta - math.pi)
@@ -140,8 +140,8 @@ class Mapping:
         y1r = y1 + self.width / 2 * math.sin(theta - math.pi)
         y2r = y2 + self.width / 2 * math.sin(theta - math.pi)
 
-        right_line_x = util.frange(x1r, x2r, resx)
-        right_line_y = util.frange(y1r, y2r, resy)
+        right_line_x = util.linspace_n(x1r, x2r, resx)
+        right_line_y = util.linspace_n(y1r, y2r, resy)
 
         path_clear = []
 
