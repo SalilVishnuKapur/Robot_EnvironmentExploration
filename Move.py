@@ -34,9 +34,9 @@ class Move:
         self.phi = phi
 
         self.rotation_tol = math.radians(1)  # Tolerance as to when to stop turning
-        self.turn_speed = 100  # speed to turn at, in deg/s
+        self.turn_speed = 400  # speed to turn at, in deg/s
 
-        self.fwd_speed = 100  # speed to drive forward at in deg/s
+        self.fwd_speed = 400  # speed to drive forward at in deg/s
 
     def get_rel_angle(self, phi, angle):
         """
