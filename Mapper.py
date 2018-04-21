@@ -17,6 +17,9 @@ class Mapping:
 
         self.mS.position = 0  # The sensor is zeroed with relation to the robot, which starts at pi/2 degrees global.
 
+        '''The width of the robot'''
+        self.width = Move.axle_length + 2
+
         '''Angle resolution for scanning, in degrees'''
         self.scan_res = 10
         self.N_theta = int(360/self.scan_res)
@@ -41,17 +44,18 @@ class Mapping:
         for elem in self.XX:
                 new_list = []
                 for elem2 in elem:
-                	new_list.append(0)
+                    new_list.append(0)
                 self.ZZ.append(new_list)
 
         '''Threshold for obstacle detection'''
-        self.obs_threshold = 0.2
+        self.obs_threshold = 0.5
+
         self.sensor_model_variance = 2
         self.resolution = res
-	self.minX = minX
-	self.minY = minY
-	self.maxX = maxX
-	self.maxY = maxY
+        self.minX = minX
+        self.minY = minY
+        self.maxX = maxX
+        self.maxY = maxY
 	
     def coord_to_index(self, x, y):
         """
@@ -93,7 +97,71 @@ class Mapping:
         else:
             obstruction = False
 
-        return obstruction, self.ZZ[x][y]
+        return obstruction
+
+    def check_path(self, x1, y1, x2, y2):
+        """
+        Draw three lines along the robots path and check if they collide with any of the objects on the occupancy grid
+
+        :param move: The movement object
+        :param x1: start x
+        :param y1: start y
+        :param x2: goal x
+        :param y2: goal y
+        :return: path_clear: bool, is the path clear or not?
+        """
+
+        theta = math.atan2(y2-y1, x2-x1)
+        length = math.sqrt((x2-x1)**2 + (y2-y1)**2)
+        N = length/self.resolution
+
+        resx = (x1 - x2) / N
+        resy = (y1 - y2) / N
+
+        middle_line_x = util.frange(x1, x2, resx)
+        middle_line_y = util.frange(y1, y2, resy)
+
+        '''Left line points'''
+        x1l = x1 + self.width / 2 * math.cos(theta + math.pi)
+        x2l = x2 + self.width / 2 * math.cos(theta + math.pi)
+        y1l = y1 + self.width / 2 * math.sin(theta + math.pi)
+        y2l = y2 + self.width / 2 * math.sin(theta + math.pi)
+
+        left_line_x = util.frange(x1l, x2l, resx)
+        left_line_y = util.frange(y1l, y2l, resy)
+
+        '''Right line points'''
+        x1r = x1 + self.width / 2 * math.cos(theta - math.pi)
+        x2r = x2 + self.width / 2 * math.cos(theta - math.pi)
+        y1r = y1 + self.width / 2 * math.sin(theta - math.pi)
+        y2r = y2 + self.width / 2 * math.sin(theta - math.pi)
+
+        right_line_x = util.frange(x1r, x2r, resx)
+        right_line_y = util.frange(y1r, y2r, resy)
+
+        path_clear = []
+
+        '''Test the lines'''
+        for idx in enumerate(middle_line_x):
+
+            if self.test_index(middle_line_x[idx], middle_line_y[idx]):
+                path_clear = True
+                print('Cannot complete direct line to goal - Object in way - Centre line')
+                break
+
+            if self.test_index(left_line_x[idx], left_line_y[idx]):
+                path_clear = True
+                print('Cannot complete direct line to goal - Object in way - Left side')
+                break
+
+            if self.test_index(right_line_x[idx], right_line_y[idx]):
+                path_clear = True
+                print('Cannot complete direct line to goal - Object in way - Right side')
+                break
+
+            path_clear = False
+
+        return path_clear
 
     def update_occupancy_grid(self, robot_x, robot_y, polar_length, polar_angle):
         """
