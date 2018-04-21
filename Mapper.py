@@ -257,5 +257,3 @@ class Mapping:
                     self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + 1 / (2 * math.pi * sigma ** 2) * math.exp(-1 * (((x - mu_x) ** 2) + ((y - mu_y) ** 2)) / (2 * sigma ** 2))
     	
     		
-		
-		
