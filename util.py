@@ -5,6 +5,36 @@ class Util:
     def deg2rad(x):
         return(x * math.pi / 180)
 
+    def linspace_n(start, end, N):
+        """
+        REPLACE ALL FRANGE WITH linspace_n in Mapper.check_path()
+
+        :param end:
+        :param N:
+        :return:
+        """
+
+        N = math.ceil(N)
+
+        res = (end - start) / N
+
+        if res == 0:  # Condition for start == end
+            L = []
+            for idx in range(0, N):
+                L.append(start)
+        else:
+            L = []
+            inc = res
+            while 1:
+                next = start + len(L) * inc
+                if inc > 0 and next >= end:
+                    break
+                elif inc < 0 and next <= end:
+                    break
+            L.append(next)
+
+        return L
+
     def linspace(min, max, res):
         """
 
