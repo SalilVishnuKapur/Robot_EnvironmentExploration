@@ -109,7 +109,7 @@ class Exploration:
                      return(True)
           return(False)
           '''
-
+          #return
           return (self.mapper.check_path(self.start_x, self.start_y, self.goal_x, self.goal_y))
 
                   
