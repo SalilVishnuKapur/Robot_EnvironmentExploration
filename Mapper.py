@@ -116,7 +116,7 @@ class Mapping:
 
         theta = math.atan2(y2-y1, x2-x1)
         length = math.sqrt((x2-x1)**2 + (y2-y1)**2)
-        N = length/self.resolution
+        N = length/(self.resolution/2)  # Ensure the resolution of the lines is much smaller than the grid to avoid gaps
 
         resx = (x1 - x2) / N
         resy = (y1 - y2) / N
@@ -242,8 +242,26 @@ class Mapping:
         for x in range(self.minX,self.maxX):
         	for y in range(self.minY,self.maxY):
     			self.ZZ[y][x] = self.1/(2*pi*sigma**2)*exp(-1*( ((x-mu_x)**2) + ((y-mu_y)**2) )/(2*sigma*sigma))
-    	
-    	
+
+
+    def update_grid_bump(self, x_line, y_line):
+        """
+        Update with a gaussian distribution the area along the bumper where an object has been hit. Called by the move fn
+
+        :param x_line: list, the x-values of the bumper line
+        :param y_line: list, the y-values of the bumper line
+        :return:
+        """
+        sigma = 2  # Variance of bump sensor in cm
+
+        for idx in enumerate(x_line):
+            mu_x = x_line[idx]
+            mu_y = y_line[idx]
+
+            for x in range(mu_x-5, mu_x+5):
+                for y in range(mu_y-5, mu_y+5):
+                    x_idx, y_idx = self.coord_to_index(x, y)
+                    self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + 1 / (2 * math.pi * sigma ** 2) * math.exp(-1 * (((x - mu_x) ** 2) + ((y - mu_y) ** 2)) / (2 * sigma ** 2))
     	
     		
 		
