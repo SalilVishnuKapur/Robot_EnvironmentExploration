@@ -4,6 +4,7 @@ import time
 import ev3dev as ev3
 import csv
 from ev3dev.ev3 import *
+import numpy as np
 
 class Mapping:
 
@@ -25,7 +26,7 @@ class Mapping:
         self.N_theta = int(360/self.scan_res)
         self.max_range = 255.0
         '''Initial Conditions, render a space'''
-        maxX, maxY = (110, 100)  # Space is 103.0, 87.5 cm, so the rendered area is a bot larger to forgive misalignment
+        maxX, maxY = (110, 140)  # Space is 103.0, 87.5 cm, so the rendered area is a bot larger to forgive misalignment
 
         minX = -maxX
         minY = -maxY
@@ -49,6 +50,9 @@ class Mapping:
 
         '''Threshold for obstacle detection'''
         self.obs_threshold = 0.5
+        
+        self.X = np.array(self.X)
+        self.Y = np.array(self.Y)
 
         self.sensor_model_variance = 2
         self.resolution = res
@@ -66,18 +70,8 @@ class Mapping:
         :param y: float
         :return:
         """
-        X_min = []
-        # print('self.X ',self.X)
-        for element in self.X:
-            X_min.append(math.fabs(element - x))
-
-        Y_min = []
-        for element in self.Y:
-            Y_min.append(math.fabs(element - y))
-        
-        # print('Min Matrix: ', X_min)
-        idxX = util.min(X_min)
-        idxY = util.min(Y_min)
+        idxX  = np.argmin(np.abs(self.X - x)); 
+        idxY  = np.argmin(np.abs(self.Y - y));
 
         return idxX, idxY
 
@@ -91,7 +85,6 @@ class Mapping:
         :return: obstruction: bool, if the x,y point is an obstacle above threshold
         :return: ZZ(x,y): float, the probability there is an obstacle at the given coordinate
         """
-
         if self.ZZ[x][y] > self.obs_threshold:
             obstruction = True
         else:
@@ -116,13 +109,25 @@ class Mapping:
 
         theta = math.atan2(y2-y1, x2-x1)
         length = math.sqrt((x2-x1)**2 + (y2-y1)**2)
-        N = length/(self.resolution/2)  # Ensure the resolution of the lines is much smaller than the grid to avoid gaps
+        
+        N = length/(5.0*self.resolution)  # Ensure the resolution of the lines is much smaller than the grid to avoid gaps
+        #print("N is",N,x1,x2,y1,y2)
+        if (N==0):
+            print("N is 0")
+            return True
+	#print(x1,x2,y1,y2)
+        #if(x1 == x2 and y1 != y2 ):
+        #    resy = (y1 - y2) / N
+        #    resx = resy
+        #elif(y1 ==y2 and x1 != x2):
+        #    resx = (x1 - x2) / N
+        #    resy = resx
+        #else:
+        #    resx = (x1 - x2) / N
+        #    resy = (y1 - y2) / N
 
-        resx = (x1 - x2) / N
-        resy = (y1 - y2) / N
-
-        middle_line_x = util.linspace_n(x1, x2, resx)
-        middle_line_y = util.linspace_n(y1, y2, resy)
+        middle_line_x = util.linspace_n(x1, x2, N)
+        middle_line_y = util.linspace_n(y1, y2, N)
 
 
         '''Left line points'''
@@ -131,8 +136,8 @@ class Mapping:
         y1l = y1 + self.width / 2 * math.sin(theta + math.pi)
         y2l = y2 + self.width / 2 * math.sin(theta + math.pi)
 
-        left_line_x = util.linspace_n(x1l, x2l, resx)
-        left_line_y = util.linspace_n(y1l, y2l, resy)
+        left_line_x = util.linspace_n(x1l, x2l, N)
+        left_line_y = util.linspace_n(y1l, y2l, N)
 
         '''Right line points'''
         x1r = x1 + self.width / 2 * math.cos(theta - math.pi)
@@ -140,31 +145,36 @@ class Mapping:
         y1r = y1 + self.width / 2 * math.sin(theta - math.pi)
         y2r = y2 + self.width / 2 * math.sin(theta - math.pi)
 
-        right_line_x = util.linspace_n(x1r, x2r, resx)
-        right_line_y = util.linspace_n(y1r, y2r, resy)
+        right_line_x = util.linspace_n(x1r, x2r, N)
+        right_line_y = util.linspace_n(y1r, y2r, N)
 
         path_clear = []
-
+        #print("Middle Line",middle_line_x, N)
         '''Test the lines'''
-        for idx in enumerate(middle_line_x):
-
-            if self.test_index(middle_line_x[idx], middle_line_y[idx]):
+        st = time.time()
+        #print("Starting the loop in check_path at time ", st)
+        for idx in range(len(middle_line_x)):
+            x,y = self.coord_to_index(middle_line_x[idx], middle_line_y[idx])            
+            if self.test_index(x,y):
                 path_clear = False
                 print('Cannot complete direct line to goal - Object in way - Centre line')
                 break
-
-            if self.test_index(left_line_x[idx], left_line_y[idx]):
+            x,y = self.coord_to_index(left_line_x[idx], left_line_y[idx])
+            if self.test_index(x,y):
                 path_clear = False
                 print('Cannot complete direct line to goal - Object in way - Left side')
                 break
-
-            if self.test_index(right_line_x[idx], right_line_y[idx]):
+            x,y = self.coord_to_index(right_line_x[idx], right_line_y[idx])
+            if self.test_index(x,y):
                 path_clear = False
                 print('Cannot complete direct line to goal - Object in way - Right side')
                 break
-
+         
             path_clear = True
-
+        end = time.time()
+        total_time = end - st
+        #print("Time taken to finish the check_path ", total_time)
+        #print("Time for each check point ", total_time/ 3*N)
         return path_clear
 
     def update_occupancy_grid(self, robot_x, robot_y, polar_length, polar_angle):
@@ -185,8 +195,8 @@ class Mapping:
 
             x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
             #print('Ray end point: ',x_ray,y_ray,'Index: ',x_idx,y_idx) 	
-            #self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
-            self.update_grid_point(x_idx,y_idx) # updating the grid points values according to a gaussian model
+            self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
+            #self.update_grid_point(x_idx,y_idx) # updating the grid points values according to a gaussian model
 
         # Write to file so that the meshgrid may be viewed to pass the project.
         # COMMAND:
@@ -246,14 +256,12 @@ class Mapping:
         :return:
         """
         sigma = 2  # Variance of bump sensor in cm
-
-        for idx in enumerate(x_line):
+        print("Updating grid bump")
+        for idx,num in enumerate(x_line):
             mu_x = x_line[idx]
             mu_y = y_line[idx]
 
             for x in range(mu_x-5, mu_x+5):
                 for y in range(mu_y-5, mu_y+5):
                     x_idx, y_idx = self.coord_to_index(x, y)
-                    self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + 1 / (2 * math.pi * sigma ** 2) * math.exp(-1 * (((x - mu_x) ** 2) + ((y - mu_y) ** 2)) / (2 * sigma ** 2))
-    	
-    		
+                    self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + (1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * ((np.pow((x - mu_x), 2) + (np.pow(y - mu_y), 2)) / (2 * sigma ** 2)))

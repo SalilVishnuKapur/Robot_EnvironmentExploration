@@ -123,7 +123,7 @@ class Exploration:
           '''
           lt = []
           count = 0
-          print("----------------------")
+          print("Finding the next point to move")
           print(self.inf)
           print("Start x"+ str(self.start_x))
           print("Start y"+ str(self.start_y))
@@ -156,8 +156,7 @@ class Exploration:
                   if(minDistance > dis):
                      minDistance =  dis
                      minPoint = point
-          print(minPoint)
-          print("----------------------")
+          print("Found the next point to move which is :- ", minPoint)
           return(minPoint)
 
       def danger(self):
@@ -186,7 +185,7 @@ class Exploration:
           print("Trigger Movement to [" + str(tempx) + ", " + str(tempy) + "]")
           self.mover.waypoint(tempx, tempy, self.mapper)
  
-      def priorInf(self):
+      def checkPriorInf(self):
           if(self.priorInf == {}):
              return("Do_Mapper_Scan")
           else:
@@ -194,17 +193,17 @@ class Exploration:
              self.priorInf = {}
 
       def controller(self):
-          if(priorInf() == "Do_Mapper_Scan"):
+          if(self.checkPriorInf() == "Do_Mapper_Scan"):
               self.inf = self.refereshMapping()
           if(self.distanceBetweenPoints(self.start_x, self.start_y, self.goal_x, self.goal_y) > 10  and self.danger() == False):
               self.angle = self.slopeAngle(self.goal_y - self.start_y, self.goal_x - self.start_x)
               self.present_Distance_From_Goal = self.distanceBetweenPoints(self.start_x, self.start_y, self.goal_x, self.goal_y)
               self.rangeAngles = self.angleOrientation(self.angle)
               self.inf = self.infSetter()
-              #print(self.inf)
+              print("Robot's vision", self.inf)
               self.start_x,self.start_y = self.motionToGoal()
               print("Inside controller. Going to: ",self.start_x,self.start_y)
               self.triggerMovement(self.start_x,self.start_y)
               return(self.controller())
           else:
-              return(True)
+              return(self.inf, True)

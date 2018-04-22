@@ -16,19 +16,21 @@ class Move:
         self.mR = LargeMotor('outB')
         self.mL = LargeMotor('outA')
 
-        self.mR.ramp_down_sp = 0.5  # Take 1 full second to start/stop to avoid wheel slip from over-torque
-        self.mL.ramp_down_sp = 0.5
-        self.mR.ramp_up_sp = 0
-        self.mL.ramp_up_sp = 0
+        self.mR.ramp_down_sp = 1  # Take 1 full second to start/stop to avoid wheel slip from over-torque
+        self.mL.ramp_down_sp = 1
+        self.mR.ramp_up_sp = 1
+        self.mL.ramp_up_sp = 1
 
         self.gyro = GyroSensor()
-        self.bump = Touchensor()
+        self.bump = TouchSensor()
 
-        self.gyro.mode = 'GYRO_ANG'
+        self.gyro.mode = 'GYRO-ANG'
+        self.gyro_initial = self.gyro.value()
 
         '''Turning Kalman filter info'''
         self.mu_turn = math.pi/2
-        self.S_turn = np.array([[0, 0], [0, 0]])
+        #self.S_turn = np.array([[0, 0], [0, 0]])
+        self.S_turn = 1
 
         # in mm
         self.axle_length = (90/94.34)*13.97  # cm, TODO: Sort out units (inches, mm are used in prevalance)
@@ -85,6 +87,7 @@ class Move:
         '''Step 1: Update the occupancy grid to reflect the hit object in the form of a line'''
 
         # Step 1a: Determine the centre of the bumper on the occupancy grid
+        print("x,y,phi",x,y,phi)
         x_c = x + bump_sensor_offset * math.cos(phi)
         y_c = y + bump_sensor_offset * math.sin(phi)
 
@@ -100,8 +103,8 @@ class Move:
         resx = (x_l - x_r) / N
         resy = (y_l - y_r) / N
 
-        bumper_line_x = util.frange(x_l, x_r, resx)
-        bumper_line_y = util.frange(y_l, y_r, resy)
+        bumper_line_x = np.linspace(x_l, x_r, N)
+        bumper_line_y = np.linspace(y_l, y_r, N)
 
         mapper_obj.update_grid_bump(bumper_line_x, bumper_line_y)
 
@@ -125,21 +128,28 @@ class Move:
         :return:
         """
         A = 1
-        B = 1
-        C = math.pi/180  #
-        Q = 1.5  # Measurement noise
+        B = -1  # negative because +rel_angle is CW, whereas + phi is CCW
+        C = -1  # again negative for the same reasons
+        Q = 1.5*C  # Measurement noise
+        
+        '''Get Gyro reading'''
+        gyro_present = self.gyro.value() - self.gyro_initial + 90  # because the gyro readings are +90 degrees out of phase with the global axis
+        print('Gyro_present: ',gyro_present) 
+        gyro_abs = (util.wrap_angle(math.radians(gyro_present)))
 
         '''Prediction'''
-        mup = A*self.mu_turn + B*rel_angle
-        Sp = A*self.S_turn*np.transpose(A) + np.eye(len(A*self.S_turn*np.transpose(A))) * Q
-
+        mup = A*self.phi + B*rel_angle
+        Sp = A*self.S_turn*A + Q
+        
         '''Filter implementation'''
-        K = Sp*np.transpose(C) + np.linalg.inv(C*Sp*np.transpose(C) + np.eye(len(A*self.S_turn*np.transpose(A))) * Q)
-        self.mu_turn = mup + K * (self.gyro.value() - C*mup)  # Gyro returns angle in degrees
-        self.S_turn = (np.eye(len(K*C)) - K*C)*Sp
-
-        self.phi = self.mu_turn
-
+        K = Sp*C/(C*Sp*C +  Q)
+        self.mu_turn = mup + K * (gyro_abs - C*mup)  # Gyro returns angle in degrees
+        self.S_turn = (1 - K*C)*Sp
+        print("self.phi before",self.phi)
+        
+        self.phi = util.wrap_angle(self.mu_turn)
+        print("rel_angle",rel_angle)
+        print("self.phi after",self.phi)
     def turn(self, angle):
         """
         Turn the robot to a specified heading using the ev3dev built in closed loop control functions. Turns the robot
@@ -197,14 +207,14 @@ class Move:
         counts_to_wp = int((dist/self.radius_wheel) * (180/math.pi))
         print('Drive forward ' + str(counts_to_wp) + ' encoder counts')
 
-        start_counts_l = self.mL.position()
-        start_counts_r = self.mR.position()
+        start_counts_l = self.mL.position
+        start_counts_r = self.mR.position
         
         self.mL.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
         self.mR.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
 
-        while self.mL.is_running():
-            if self.bump.is_pressed():
+        while self.mL.is_running:
+            if self.bump.is_pressed:
                 self.mL.stop(stop_action='hold')
                 self.mR.stop(stop_action='hold')
 
@@ -214,12 +224,12 @@ class Move:
                 Sound.tone(620, 100)
 
                 # Find position of left motor
-                mL_x = x + ((self.mL.position() - start_counts_l) / counts_to_wp) * dist * math.cos(angle)
-                mL_y = y + ((self.mL.position() - start_counts_l) / counts_to_wp) * dist * math.sin(angle)
+                mL_x = x + ((self.mL.position - start_counts_l) / counts_to_wp) * dist * math.cos(angle)
+                mL_y = y + ((self.mL.position - start_counts_l) / counts_to_wp) * dist * math.sin(angle)
 
                 # Find position of right motor
-                mR_x = x + ((self.mR.position() - start_counts_r) / counts_to_wp) * dist * math.cos(angle)
-                mR_y = y + ((self.mR.position() - start_counts_r) / counts_to_wp) * dist * math.sin(angle)
+                mR_x = x + ((self.mR.position - start_counts_r) / counts_to_wp) * dist * math.cos(angle)
+                mR_y = y + ((self.mR.position - start_counts_r) / counts_to_wp) * dist * math.sin(angle)
 
                 # Assign new robot current position to class variables
                 self.x = (mL_x + mR_x) / 2

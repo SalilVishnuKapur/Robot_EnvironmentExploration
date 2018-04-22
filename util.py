@@ -15,23 +15,28 @@ class Util:
         """
 
         N = math.ceil(N)
-
-        res = (end - start) / N
-
-        if res == 0:  # Condition for start == end
+        if start==end:
             L = []
             for idx in range(0, N):
                 L.append(start)
-        else:
-            L = []
-            inc = res
-            while 1:
-                next = start + len(L) * inc
-                if inc > 0 and next >= end:
-                    break
-                elif inc < 0 and next <= end:
-                    break
-            L.append(next)
+            return L
+
+        res = (end - start) / N
+
+        #if res == 0:  # Condition for start == end
+        #    ##should not arrive
+        #    L = []
+        #    for idx in range(0, N):
+        #        L.append(start)
+        L = []
+        inc = res
+        while 1:
+           next = start + len(L) * inc
+           if inc > 0 and next >= end:
+              break
+           elif inc < 0 and next <= end:
+              break
+           L.append(next)
 
         return L
 

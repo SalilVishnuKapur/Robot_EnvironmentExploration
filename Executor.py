@@ -13,10 +13,10 @@ class Executor:
           '''Phases for the robot to attempt to travel around the space'''
           # Robot space is 2*103, 2*87.5cm
           centre_phase = [0,0]
-          robot_start_posx, robot_start_posy = [53, -112.5]
+          robot_start_posx, robot_start_posy = [48.26, -125.73]
           
           # The 7 phases new (Testing state)
-          phases = {"Phase 1" : [(48.26, -125.73), (48.26, -64.77)], "Phase 2" : [(48.26, -64.77), (64, -64)],
+          phases = {"Phase 1" : [(48.26, -125.73), (48.26, -64)], "Phase 2" : [(48.26, -64), (64, -64)],
               "Phase 3" : [(64, -64), (64, 64)], "Phase 4" : [(64, 64), (-64, 64)],
               "Phase 5" : [(-64, 64), (-64, -64)], "Phase 6" : [(-64, -64), (48.26, -64)],
               "Phase 7" : [(48.26, -64), (48.26, -125.73)]}
@@ -41,6 +41,7 @@ class Executor:
 
           # Iterating over the 7 phases
           for pointer in range(1, 8):
+              print("Starting exploring phase ", pointer)
               values = phases["Phase "+ str(pointer)]   
               From = values[0]
               To = values[1]
