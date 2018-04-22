@@ -148,14 +148,14 @@ class Move:
         '''Filter implementation'''
         K = Sp*C/(C*Sp*C +  R)
         print('Kalman gain',K, ' C*mup', C*mup)
-        print('K*(gyro_abs - C*mup): ', K*(gyro_abs-C*mup))
-        self.mu_turn = mup + K * util.wrap_angle(gyro_abs - C*mup)  # Gyro returns angle in degrees
+        print('K*util.wrap_angle_180(gyro_abs - C*mup): ', K*util.wrap_angle_180(gyro_abs - C*mup))
+        self.mu_turn = mup + K * util.wrap_angle_180(gyro_abs - C*mup)  # Gyro returns angle in degrees
         self.S_turn = (1 - K*C)*Sp
-        print("self.phi before",self.phi)
+        print("self.phi before in degrees",math.degrees(self.phi))
         print('self.mu_turn (variable out of k-filter)', self.mu_turn)
         self.phi = util.wrap_angle(self.mu_turn)
         print("rel_angle",rel_angle)
-        print("self.phi after",self.phi)
+        print("self.phi after in degrees",math.degrees(self.phi))
     def turn(self, angle):
         """
         Turn the robot to a specified heading using the ev3dev built in closed loop control functions. Turns the robot
