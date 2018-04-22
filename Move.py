@@ -1,14 +1,15 @@
 import math
 import time
+import numpy as np
 from util import Util as util
 
 from ev3dev.ev3 import *
-import numpy as np
 
 class Move:
 
     def __init__(self, initx, inity):
-
+        global np
+        
         x = initx
         y = inity
         phi = math.pi/2  # Given the robot begins facing north, it starts at 90 degrees.
@@ -46,9 +47,9 @@ class Move:
         self.phi = phi
 
         self.rotation_tol = math.radians(1)  # Tolerance as to when to stop turning
-        self.turn_speed = 400  # speed to turn at, in deg/s
+        self.turn_speed = 150  # speed to turn at, in deg/s
 
-        self.fwd_speed = 400  # speed to drive forward at in deg/s
+        self.fwd_speed = 150  # speed to drive forward at in deg/s
 
     def get_rel_angle(self, phi, angle):
         """
@@ -81,7 +82,7 @@ class Move:
         """
         bump_sensor_offset = 5  # cm, the distance from the bump sensor to the centre of the robot
         bumper_width = 14  # cm
-        backup_dist = -10  # cm
+        backup_dist = -15  # cm
         x, y, phi = self.pose()
 
         '''Step 1: Update the occupancy grid to reflect the hit object in the form of a line'''
@@ -98,7 +99,7 @@ class Move:
         y_r = y_c + bumper_width / 2 * math.sin(phi - math.pi)
 
         # Step 1c: create two linspace objects to represent the x and y values of the bumper line
-        N = bumper_width/(mapper_obj.resolution/2)  # Ensure the resolution of the lines is much smaller than the grid to avoid gaps
+        N = bumper_width/(2*mapper_obj.resolution)  # Coarse resolution OK because update_grid_bump will overlap points to add gaussian uncertainty
 
         resx = (x_l - x_r) / N
         resy = (y_l - y_r) / N
@@ -129,24 +130,29 @@ class Move:
         """
         A = 1
         B = -1  # negative because +rel_angle is CW, whereas + phi is CCW
-        C = -1  # again negative for the same reasons
-        Q = 1.5*C  # Measurement noise
-        
+        C = 1  # again negative for the same reasons
+        Q = math.radians(1.3)  # Motion noise
+        R = math.radians(3)  # Measurement noise        
+
         '''Get Gyro reading'''
-        gyro_present = self.gyro.value() - self.gyro_initial + 90  # because the gyro readings are +90 degrees out of phase with the global axis
-        print('Gyro_present: ',gyro_present) 
+        gyro_present = -(self.gyro.value() - self.gyro_initial) + 90  # because the gyro readings are +90 degrees out of phase with the global axis
         gyro_abs = (util.wrap_angle(math.radians(gyro_present)))
+        print('Gyro_abs: ',gyro_abs)
 
         '''Prediction'''
         mup = A*self.phi + B*rel_angle
+        print('mup: ',mup)
         Sp = A*self.S_turn*A + Q
-        
+        print('Sp: ', Sp)        
+
         '''Filter implementation'''
-        K = Sp*C/(C*Sp*C +  Q)
-        self.mu_turn = mup + K * (gyro_abs - C*mup)  # Gyro returns angle in degrees
+        K = Sp*C/(C*Sp*C +  R)
+        print('Kalman gain',K, ' C*mup', C*mup)
+        print('K*(gyro_abs - C*mup): ', K*(gyro_abs-C*mup))
+        self.mu_turn = mup + K * util.wrap_angle(gyro_abs - C*mup)  # Gyro returns angle in degrees
         self.S_turn = (1 - K*C)*Sp
         print("self.phi before",self.phi)
-        
+        print('self.mu_turn (variable out of k-filter)', self.mu_turn)
         self.phi = util.wrap_angle(self.mu_turn)
         print("rel_angle",rel_angle)
         print("self.phi after",self.phi)
@@ -184,7 +190,7 @@ class Move:
             self.mL.wait_while('running')
             self.mR.wait_while('running')
  
-        self.kalman_f_turn(rel_angle)
+        return rel_angle
 
     def waypoint(self, x_wp, y_wp, mapper_obj):
         """
@@ -202,7 +208,7 @@ class Move:
         print('### Move to Waypoint ###')
         print('Robot currently at [x, y, phi]: [' + str(x) + ', ' + str(y) + ', ' + str(math.degrees(phi)) + ']')
         print('Turning to ' + str(math.degrees(angle)) + ' and driving distance of ' + str(dist) + ' towards target')
-        self.turn(angle)
+        rel_angle = self.turn(angle)
         # Turn dist into encoder counts using: counts = (dist/wheel_rad)*(180/pi)
         counts_to_wp = int((dist/self.radius_wheel) * (180/math.pi))
         print('Drive forward ' + str(counts_to_wp) + ' encoder counts')
@@ -210,8 +216,13 @@ class Move:
         start_counts_l = self.mL.position
         start_counts_r = self.mR.position
         
-        self.mL.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
-        self.mR.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
+        st = time.time() 
+        self.mL.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, ramp_down_sp=1, stop_action='hold')
+        middle = time.time()
+        self.mR.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, ramp_down_sp=1, stop_action='hold')
+        end = time.time()
+
+        print('Motor time delay Left: ', middle-st, ' Motor time delay Right: ', end-st)
 
         while self.mL.is_running:
             if self.bump.is_pressed:
@@ -242,6 +253,9 @@ class Move:
 
 
         self.mR.wait_while('running')  # Wait for the right motor to stop running (shouldn't be much longer than left)
+
+        time.sleep(0.5)
+        self.kalman_f_turn(rel_angle)
 
         # TODO: Return the x and y values of where the robot is at for the exploration to make use of
         print('### Move Complete ###')

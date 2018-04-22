@@ -1,15 +1,15 @@
+
 from util import Util as util
 import math
 import time
-import ev3dev as ev3
 import csv
-from ev3dev.ev3 import *
 import numpy as np
+from ev3dev.ev3 import *
 
 class Mapping:
 
     def __init__(self, Move):
-
+        
         '''MAKE SURE THE SENSOR IS POINTED FORWARD AT START OF CODE (on-robot jig needs to be designed to do this)'''
         self.mS = MediumMotor('outD')  # mS = motor_sensor for the ultrasonic sensor to be rotated
         self.ultra1 = UltrasonicSensor()
@@ -31,36 +31,28 @@ class Mapping:
         minX = -maxX
         minY = -maxY
 
-        res = 1  # cm
+        res = 5  # cm
         numX = int((maxX - minX) / res)
-        numY = int((maxX - minX) / res)
+        numY = int((maxY - minY) / res)
 
-        self.X = util.linspace(minX, maxX, res)
-        self.Y = util.linspace(minY, maxY, res)
-        self.XX, self.YY = util.meshgrid(self.X, self.Y)
+        self.X = np.linspace(minX, maxX, numX)
+        self.Y = np.linspace(minY, maxY, numY)
+        self.XX, self.YY = np.meshgrid(self.X, self.Y)
 
         '''A matrix containing all the grid points in the rendered space, an occupancy grid, , for an obstacle probability to 
            be assigned'''
-        self.ZZ = []
-        for elem in self.XX:
-                new_list = []
-                for elem2 in elem:
-                    new_list.append(0)
-                self.ZZ.append(new_list)
+        self.ZZ = np.zeros_like(self.XX)
 
         '''Threshold for obstacle detection'''
         self.obs_threshold = 0.5
-        
-        self.X = np.array(self.X)
-        self.Y = np.array(self.Y)
 
-        self.sensor_model_variance = 2
+        self.sensor_model_variance = 25
         self.resolution = res
         self.minX = minX
         self.minY = minY
         self.maxX = maxX
         self.maxY = maxY
-	
+
     def coord_to_index(self, x, y):
         """
         Take in the meshgrid XX and YY matrixes, and a point of interest. Return the closest coordinate on the meshgrid in
@@ -70,8 +62,8 @@ class Mapping:
         :param y: float
         :return:
         """
-        idxX  = np.argmin(np.abs(self.X - x)); 
-        idxY  = np.argmin(np.abs(self.Y - y));
+        idxX = np.argmin(np.abs(self.X - x))
+        idxY = np.argmin(np.abs(self.Y - y))
 
         return idxX, idxY
 
@@ -110,7 +102,7 @@ class Mapping:
         theta = math.atan2(y2-y1, x2-x1)
         length = math.sqrt((x2-x1)**2 + (y2-y1)**2)
         
-        N = length/(5.0*self.resolution)  # Ensure the resolution of the lines is much smaller than the grid to avoid gaps
+        N = math.ceil(length/(3.0*self.resolution))  # Ensure the resolution of the lines is much smaller than the grid to avoid gaps
         #print("N is",N,x1,x2,y1,y2)
         if (N==0):
             print("N is 0")
@@ -126,8 +118,8 @@ class Mapping:
         #    resx = (x1 - x2) / N
         #    resy = (y1 - y2) / N
 
-        middle_line_x = util.linspace_n(x1, x2, N)
-        middle_line_y = util.linspace_n(y1, y2, N)
+        middle_line_x = np.linspace(x1, x2, N)
+        middle_line_y = np.linspace(y1, y2, N)
 
 
         '''Left line points'''
@@ -136,8 +128,8 @@ class Mapping:
         y1l = y1 + self.width / 2 * math.sin(theta + math.pi)
         y2l = y2 + self.width / 2 * math.sin(theta + math.pi)
 
-        left_line_x = util.linspace_n(x1l, x2l, N)
-        left_line_y = util.linspace_n(y1l, y2l, N)
+        left_line_x = np.linspace(x1l, x2l, N)
+        left_line_y = np.linspace(y1l, y2l, N)
 
         '''Right line points'''
         x1r = x1 + self.width / 2 * math.cos(theta - math.pi)
@@ -145,8 +137,8 @@ class Mapping:
         y1r = y1 + self.width / 2 * math.sin(theta - math.pi)
         y2r = y2 + self.width / 2 * math.sin(theta - math.pi)
 
-        right_line_x = util.linspace_n(x1r, x2r, N)
-        right_line_y = util.linspace_n(y1r, y2r, N)
+        right_line_x = np.linspace(x1r, x2r, N)
+        right_line_y = np.linspace(y1r, y2r, N)
 
         path_clear = []
         #print("Middle Line",middle_line_x, N)
@@ -187,16 +179,24 @@ class Mapping:
         :param polar_angle: array, the global angle that each polar_length element was recorded at.
         :return:
         """
- 
+        
+        print('--Updateing occupancy grid...---') 
         for idx, ray in enumerate(polar_length):
-
+            
+            # Play a sound so you don't get bored as it updates
+            Sound.tone(100*polar_angle[idx]/40, 30)  # Frequency [Hz], duration [ms]
+            
             x_ray = robot_x + ray * math.cos(math.radians(polar_angle[idx]))  # cartesian components of the ray
             y_ray = robot_y + ray * math.sin(math.radians(polar_angle[idx]))
 
-            x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
+            #x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
             #print('Ray end point: ',x_ray,y_ray,'Index: ',x_idx,y_idx) 	
-            self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
-            #self.update_grid_point(x_idx,y_idx) # updating the grid points values according to a gaussian model
+            #self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
+            self.update_grid_point(x_ray,y_ray) # updating the grid points values according to a gaussian model
+
+        Sound.tone(921, 200)
+        '''Normalize the meshgrid'''
+        
 
         # Write to file so that the meshgrid may be viewed to pass the project.
         # COMMAND:
@@ -245,7 +245,30 @@ class Mapping:
         #print(polar_length)
         '''Return 360 dict to exploration'''
         return dict(zip(polar_angle, polar_length))
-    
+
+
+    def update_grid_point(self, mu_x, mu_y):
+        """
+        Update the occupancy grid with a level of uncertainty around where each point was detected
+
+        :param mux:
+        :param muy:
+        :return:
+        """
+        sigma = self.sensor_model_variance
+        weight = 2000
+        cm_x = 20  # How many centimeters in the x or y direction to apply the gaussian to
+        cm_y = 20
+        Nx = (cm_x)/self.resolution + 1
+        Ny = (cm_y)/self.resolution + 1
+
+        for x in np.linspace(mu_x - cm_x/2, mu_x + cm_x/2, Nx):
+            for y in np.linspace(mu_y - cm_y/2, mu_y + cm_y/2, Ny):
+                x_idx, y_idx = self.coord_to_index(x, y)
+                # print("Writing bump to: [", x_idx, ", ", y_idx, "]")
+                self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(
+                    -1 * (((x - mu_x) ** 2) + ((y - mu_y) ** 2) / (2 * sigma ** 2)))
+
 
     def update_grid_bump(self, x_line, y_line):
         """
@@ -255,13 +278,22 @@ class Mapping:
         :param y_line: list, the y-values of the bumper line
         :return:
         """
-        sigma = 2  # Variance of bump sensor in cm
-        print("Updating grid bump")
+        sigma = 4  # Variance of bump sensor in cm
+        weight = 50
+        cm_x = 10
+        cm_y = 10
+        Nx = (cm_x)/self.resolution + 1
+        Ny = (cm_y)/self.resolution + 1
+
+        print("Updating grid with bump")
+        print("Updating this many elements for bump", len(x_line)*11**2)
         for idx,num in enumerate(x_line):
             mu_x = x_line[idx]
             mu_y = y_line[idx]
 
-            for x in range(mu_x-5, mu_x+5):
-                for y in range(mu_y-5, mu_y+5):
+            for x in np.linspace(mu_x - cm_x/2, mu_x + cm_x/2, Nx):
+                for y in np.linspace(mu_y - cm_y/2, mu_y + cm_y/2, Ny):
                     x_idx, y_idx = self.coord_to_index(x, y)
-                    self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + (1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * ((np.pow((x - mu_x), 2) + (np.pow(y - mu_y), 2)) / (2 * sigma ** 2)))
+                    #print("Writing bump to: [", x_idx, ", ", y_idx, "]")
+                    self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * (((x - mu_x)**2) + ((y - mu_y)**2) / (2 * sigma ** 2)))
+

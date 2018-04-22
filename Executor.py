@@ -53,3 +53,6 @@ class Executor:
                   print("Terminating Exploration of Environment")
                   print("No. of phases explored :- "+ str(pointer))
                   break
+          if move.number_of_moves>move.maximum_moves and explore==False:
+             print("Maximum number of moves have been exceeded")
+             #explore = Exploration()

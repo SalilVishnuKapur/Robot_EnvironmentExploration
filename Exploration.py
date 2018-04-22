@@ -28,7 +28,8 @@ class Exploration:
           self.mover = move
           self.priorInf = prevInf
           self.dangerChecker = DangerChecker()
-
+          self.maximum_moves = 10
+          self.number_of_moves = 0
       def distanceBetweenPoints(self, st_x, st_y, end_x, end_y):
           '''
           Finds the distance between two points.
@@ -203,6 +204,9 @@ class Exploration:
               print("Robot's vision", self.inf)
               self.start_x,self.start_y = self.motionToGoal()
               print("Inside controller. Going to: ",self.start_x,self.start_y)
+              self.number_of_moves = self.number_of_moves + 1
+              if self.number_of_moves>self.maximum_moves:
+                   return(self.inf,False)
               self.triggerMovement(self.start_x,self.start_y)
               return(self.controller())
           else:

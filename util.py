@@ -105,9 +105,9 @@ class Util:
         :param angle: float, radians
         :return: angle, float, bounded between 0 and 2pi radians
         """
-        while angle < 0:
+        while angle < -math.pi:
             angle = angle + 2*math.pi
-        while angle > 2*math.pi:
+        while angle > math.pi:
             angle = angle - 2*math.pi
 
         return angle
