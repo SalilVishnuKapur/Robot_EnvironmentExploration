@@ -140,16 +140,16 @@ class Exploration:
               if(val < 255.0):
                  if((key-10 in self.inf.keys()) and (key+10 in self.inf.keys())):
                     # 2 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3 or  self.distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 3):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 10 or  self.distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 10):
                        lt.append((self.start_x + (val-5)* math.cos(Util.deg2rad(key)), self.start_y + (val-5)* math.sin(Util.deg2rad(key))))
                  elif(key-10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 10):
                        lt.append((self.start_x + (val-5)* math.cos(Util.deg2rad(key)), self.start_y + (val-5) * math.sin(Util.deg2rad(key))))
                  elif(key+10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 3):
-                       lt.append((self.start_x + (val-5)* math.cos(Util.deg2rad(key)), self.start_y + (val-5) * math.sin(Util.deg2rad(key))))
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 10):
+                       lt.append((self.start_x + (val-15)* math.cos(Util.deg2rad(key)), self.start_y + (val-15) * math.sin(Util.deg2rad(key))))
           minDistance = 99999999999999
           minPoint = (self.goal_x, self.goal_y)
           for point in lt:
@@ -206,8 +206,9 @@ class Exploration:
               print("Inside controller. Going to: ",self.start_x,self.start_y)
               self.number_of_moves = self.number_of_moves + 1
               if self.number_of_moves>self.maximum_moves:
-                   return(self.inf,False)
+                   return((self.start_x, self.start_y), self.inf,False)
               self.triggerMovement(self.start_x,self.start_y)
+              self.start_x , self.start_y, ppp  = self.pose()
               return(self.controller())
           else:
-              return(self.inf, True)
+              return((self.start_x, self.start_y), self.inf, True)

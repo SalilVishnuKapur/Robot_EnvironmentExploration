@@ -43,10 +43,10 @@ class Executor:
           for pointer in range(1, 8):
               print("Starting exploring phase ", pointer)
               values = phases["Phase "+ str(pointer)]   
-              From = values[0]
+              From = (robot_start_posx, robot_start_posy)
               To = values[1]
               explore = Exploration(From[0], From[1], To[0], To[1], {}, mapper, move, priorInf)
-              priorInf, explore = explore.controller()
+              (robot_start_posx, robot_start_posy), priorInf, explore = explore.controller()
               if(explore == True):
                   print("Successfully Traversed Phase "+ str(pointer))
               else:
