@@ -107,16 +107,6 @@ class Mapping:
         if (N==0):
             print("N is 0")
             return True
-	#print(x1,x2,y1,y2)
-        #if(x1 == x2 and y1 != y2 ):
-        #    resy = (y1 - y2) / N
-        #    resx = resy
-        #elif(y1 ==y2 and x1 != x2):
-        #    resx = (x1 - x2) / N
-        #    resy = resx
-        #else:
-        #    resx = (x1 - x2) / N
-        #    resy = (y1 - y2) / N
 
         middle_line_x = np.linspace(x1, x2, N)
         middle_line_y = np.linspace(y1, y2, N)
@@ -142,31 +132,62 @@ class Mapping:
 
         path_clear = []
         #print("Middle Line",middle_line_x, N)
-        '''Test the lines'''
-        st = time.time()
-        #print("Starting the loop in check_path at time ", st)
+
+        '''In this section, the code will check each point along the lines and return 1 or zero if it is over a'''
+        '''threshold value. It will then store this to an array, and then take the average of the three lines to find'''
+        '''the percent chance it is going to make it. If the chance is good (ie over 95%), it will go for the goal'''
+
+        path_clear_m = []
+        path_clear_l = []
+        path_clear_r = []
+
         for idx in range(len(middle_line_x)):
-            x,y = self.coord_to_index(middle_line_x[idx], middle_line_y[idx])            
-            if self.test_index(x,y):
-                path_clear = False
-                print('Cannot complete direct line to goal - Object in way - Centre line')
-                break
-            x,y = self.coord_to_index(left_line_x[idx], left_line_y[idx])
-            if self.test_index(x,y):
-                path_clear = False
-                print('Cannot complete direct line to goal - Object in way - Left side')
-                break
-            x,y = self.coord_to_index(right_line_x[idx], right_line_y[idx])
-            if self.test_index(x,y):
-                path_clear = False
-                print('Cannot complete direct line to goal - Object in way - Right side')
-                break
-         
+            x, y = self.coord_to_index(middle_line_x[idx], middle_line_y[idx])
+            if self.test_index(x, y):
+                path_clear_m[idx] = 0
+            else:
+                path_clear_m[idx] = 1
+            x, y = self.coord_to_index(left_line_x[idx], left_line_y[idx])
+            if self.test_index(x, y):
+                path_clear_l[idx] = 0
+            else:
+                path_clear_l[idx] = 1
+            x, y = self.coord_to_index(right_line_x[idx], right_line_y[idx])
+            if self.test_index(x, y):
+                path_clear_r[idx] = 0
+            else:
+                path_clear_r[idx] = 1
+
+        path_clear_m = np.array(path_clear_m)
+        path_clear_l = np.array(path_clear_l)
+        path_clear_r = np.array(path_clear_r)
+
+        percent_clear = np.mean([np.mean(path_clear_m), np.mean(path_clear_l), np.mean(path_clear_r)])  # from 0 to 1
+
+        if percent_clear >= 0.95:
             path_clear = True
-        end = time.time()
-        total_time = end - st
-        #print("Time taken to finish the check_path ", total_time)
-        #print("Time for each check point ", total_time/ 3*N)
+        else:
+            path_clear = False
+
+        # for idx in range(len(middle_line_x)):
+        #     x,y = self.coord_to_index(middle_line_x[idx], middle_line_y[idx])
+        #     if self.test_index(x,y):
+        #         path_clear = False
+        #         print('Cannot complete direct line to goal - Object in way - Centre line')
+        #         break
+        #     x,y = self.coord_to_index(left_line_x[idx], left_line_y[idx])
+        #     if self.test_index(x,y):
+        #         path_clear = False
+        #         print('Cannot complete direct line to goal - Object in way - Left side')
+        #         break
+        #     x,y = self.coord_to_index(right_line_x[idx], right_line_y[idx])
+        #     if self.test_index(x,y):
+        #         path_clear = False
+        #         print('Cannot complete direct line to goal - Object in way - Right side')
+        #         break
+        #
+        #     path_clear = True
+
         return path_clear
 
     def update_occupancy_grid(self, robot_x, robot_y, polar_length, polar_angle):

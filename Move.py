@@ -137,7 +137,7 @@ class Move:
         '''Get Gyro reading'''
         gyro_present = -(self.gyro.value() - self.gyro_initial) + 90  # because the gyro readings are +90 degrees out of phase with the global axis
         gyro_abs = (util.wrap_angle(math.radians(gyro_present)))
-        print('Gyro_abs: ',gyro_abs)
+        print('Gyro_abs: ', gyro_abs)
 
         '''Prediction'''
         mup = A*self.phi + B*rel_angle
