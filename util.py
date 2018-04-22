@@ -98,12 +98,12 @@ class Util:
 
         return x
 
-    def wrap_angle(angle):
+    def wrap_angle_180(angle):
         """
-        similar to saturate, make sure an angle is within 0 and 2pi radians such that math may be performed on it.
+        similar to saturate, make sure an angle is within -pi and pi radians such that math may be performed on it.
 
         :param angle: float, radians
-        :return: angle, float, bounded between 0 and 2pi radians
+        :return: angle, float, bounded between -pi and pi radians
         """
         while angle < -math.pi:
             angle = angle + 2*math.pi
@@ -112,6 +112,21 @@ class Util:
 
         return angle
 
+    def wrap_angle(angle):
+        """
+        similar to saturate, make sure an angle is within 0 and 2pi radians such that math may be performed on it.
+
+        :param angle: float, radians
+        :return: angle, float, bounded between 0 and 2pi radians
+        """
+        while angle < 0:
+            angle = angle + 2*math.pi
+        while angle > 2*math.pi:
+            angle = angle - 2*math.pi
+
+        return angle
+
+    
     def min(array):
 
         minimum_elem = 8000
