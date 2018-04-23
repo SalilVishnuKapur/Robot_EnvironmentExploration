@@ -196,7 +196,7 @@ class Exploration:
       def controller(self):
           if(self.checkPriorInf() == "Do_Mapper_Scan"):
               self.inf = self.refereshMapping()
-          if(self.distanceBetweenPoints(self.start_x, self.start_y, self.goal_x, self.goal_y) > 10  and self.danger() == False):
+          if(self.distanceBetweenPoints(self.start_x, self.start_y, self.goal_x, self.goal_y) > 30  and self.danger() == False):
               self.angle = self.slopeAngle(self.goal_y - self.start_y, self.goal_x - self.start_x)
               self.present_Distance_From_Goal = self.distanceBetweenPoints(self.start_x, self.start_y, self.goal_x, self.goal_y)
               self.rangeAngles = self.angleOrientation(self.angle)

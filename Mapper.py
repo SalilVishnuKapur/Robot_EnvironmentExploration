@@ -9,7 +9,7 @@ from ev3dev.ev3 import *
 class Mapping:
 
     def __init__(self, Move):
-        
+    #def __init__(self):    
         '''MAKE SURE THE SENSOR IS POINTED FORWARD AT START OF CODE (on-robot jig needs to be designed to do this)'''
         self.mS = MediumMotor('outD')  # mS = motor_sensor for the ultrasonic sensor to be rotated
         self.ultra1 = UltrasonicSensor()
@@ -27,7 +27,8 @@ class Mapping:
         self.max_range = 255.0
         '''Initial Conditions, render a space'''
         maxX, maxY = (110, 140)  # Space is 103.0, 87.5 cm, so the rendered area is a bot larger to forgive misalignment
-
+        ## 207 cm and 175 cm
+        ### half is 103.5 cm and 87.5 cm
         minX = -maxX
         minY = -maxY
 
@@ -39,10 +40,48 @@ class Mapping:
         self.Y = np.linspace(minY, maxY, numY)
         self.XX, self.YY = np.meshgrid(self.X, self.Y)
 
+
         '''A matrix containing all the grid points in the rendered space, an occupancy grid, , for an obstacle probability to 
            be assigned'''
         self.ZZ = np.zeros_like(self.XX)
-
+	
+	
+        '''
+        Populating the boundaries of the self.ZZ
+        '''
+        minInnerX = -103.5
+        maxInnerX = 103.5
+           
+        minInnerY = -87.5
+        maxInnerY = 87.5
+        
+        numInnerX = math.ceil((maxInnerX - minInnerX) / res) +1 
+        numInnerY = math.ceil((maxInnerY - minInnerY) / res) +1
+        
+        
+        self.innerX = np.linspace(minInnerX, maxInnerX, numInnerX)
+        self.innerY = np.linspace(minInnerY, maxInnerY, numInnerY)
+        
+        for innX in self.innerX:
+       	     x,y = self.coord_to_index(innX, minInnerY)
+       	     self.ZZ[y][x]=1
+       	     x,y = self.coord_to_index(innX, maxInnerY)
+             self.ZZ[y][x]=1
+        for innY in self.innerY:
+       	     x,y = self.coord_to_index(minInnerX, innY)
+       	     self.ZZ[y][x]=1
+       	     x,y = self.coord_to_index(maxInnerX, innY)
+             self.ZZ[y][x]=1
+            
+        startx = 43.75-22.8
+        endx = 43.75+22.8
+        
+        exclusion_window = int((endx - startx) / res)
+        exc_window = np.linspace(startx, endx, exclusion_window)
+        for ex in exc_window:
+        	x,y = self.coord_to_index(ex, minInnerY)
+        	self.ZZ[y][x] = 0
+        
         '''Threshold for obstacle detection'''
         self.obs_threshold = 0.5
 
@@ -52,6 +91,10 @@ class Mapping:
         self.minY = minY
         self.maxX = maxX
         self.maxY = maxY
+        
+        with open("occupancy_grid_init.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerows(self.ZZ)
 
     def coord_to_index(self, x, y):
         """
@@ -287,8 +330,7 @@ class Mapping:
             for y in np.linspace(mu_y - cm_y/2, mu_y + cm_y/2, Ny):
                 x_idx, y_idx = self.coord_to_index(x, y)
                 # print("Writing bump to: [", x_idx, ", ", y_idx, "]")
-                self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(
-                    -1 * (((x - mu_x) ** 2) + ((y - mu_y) ** 2) / (2 * sigma ** 2)))
+                self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * (((x - mu_x) ** 2) + ((y -mu_y) ** 2) / (2 * sigma ** 2)))
 
 
     def update_grid_bump(self, x_line, y_line):
@@ -317,4 +359,3 @@ class Mapping:
                     x_idx, y_idx = self.coord_to_index(x, y)
                     #print("Writing bump to: [", x_idx, ", ", y_idx, "]")
                     self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * (((x - mu_x)**2) + ((y - mu_y)**2) / (2 * sigma ** 2)))
-
