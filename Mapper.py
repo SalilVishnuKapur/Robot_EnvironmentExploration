@@ -1,4 +1,3 @@
-
 from util import Util as util
 import math
 import time
@@ -8,10 +7,9 @@ from ev3dev.ev3 import *
 
 class Mapping:
 
-    def __init__(self, Move):
-    #def __init__(self):    
+    def __init__(self, Move):   
         '''MAKE SURE THE SENSOR IS POINTED FORWARD AT START OF CODE (on-robot jig needs to be designed to do this)'''
-        self.mS = MediumMotor('outD')  # mS = motor_sensor for the ultrasonic sensor to be rotated
+        self.mS = MediumMotor('outC')  # mS = motor_sensor for the ultrasonic sensor to be rotated
         self.ultra1 = UltrasonicSensor()
         self.sensor_range = 100
         self.gear_ratio = -28  # Motor must turn 28 times for 1 turn of sensor
@@ -24,7 +22,7 @@ class Mapping:
         '''Angle resolution for scanning, in degrees'''
         self.scan_res = 10
         self.N_theta = int(360/self.scan_res)
-        self.max_range = 255.0
+        self.max_range = 200.0
         '''Initial Conditions, render a space'''
         maxX, maxY = (110, 140)  # Space is 103.0, 87.5 cm, so the rendered area is a bot larger to forgive misalignment
         ## 207 cm and 175 cm
@@ -64,26 +62,26 @@ class Mapping:
         
         for innX in self.innerX:
        	     x,y = self.coord_to_index(innX, minInnerY)
-       	     self.ZZ[y][x]=1
+       	     self.ZZ[y][x]=10
        	     x,y = self.coord_to_index(innX, maxInnerY)
-             self.ZZ[y][x]=1
+             self.ZZ[y][x]=10
         for innY in self.innerY:
        	     x,y = self.coord_to_index(minInnerX, innY)
-       	     self.ZZ[y][x]=1
+       	     self.ZZ[y][x]=10
        	     x,y = self.coord_to_index(maxInnerX, innY)
-             self.ZZ[y][x]=1
+             self.ZZ[y][x]=10
             
-        startx = 43.75-22.8
-        endx = 43.75+22.8
+        startx = 48.26-22.8
+        endx = 48.26+22.8
         
-        exclusion_window = int((endx - startx) / res)
+        exclusion_window = int((endx - startx) / res) + 1
         exc_window = np.linspace(startx, endx, exclusion_window)
         for ex in exc_window:
         	x,y = self.coord_to_index(ex, minInnerY)
         	self.ZZ[y][x] = 0
         
         '''Threshold for obstacle detection'''
-        self.obs_threshold = 0.5
+        self.obs_threshold = 2.5
 
         self.sensor_model_variance = 25
         self.resolution = res
@@ -187,29 +185,31 @@ class Mapping:
         for idx in range(len(middle_line_x)):
             x, y = self.coord_to_index(middle_line_x[idx], middle_line_y[idx])
             if self.test_index(x, y):
-                path_clear_m[idx] = 0
+                path_clear_m.append(1)
             else:
-                path_clear_m[idx] = 1
+                path_clear_m.append(0)
             x, y = self.coord_to_index(left_line_x[idx], left_line_y[idx])
             if self.test_index(x, y):
-                path_clear_l[idx] = 0
+                path_clear_l.append(1)
             else:
-                path_clear_l[idx] = 1
+                path_clear_l.append(0)
             x, y = self.coord_to_index(right_line_x[idx], right_line_y[idx])
             if self.test_index(x, y):
-                path_clear_r[idx] = 0
+                path_clear_r.append(1)
             else:
-                path_clear_r[idx] = 1
+                path_clear_r.append(0)
 
         path_clear_m = np.array(path_clear_m)
         path_clear_l = np.array(path_clear_l)
         path_clear_r = np.array(path_clear_r)
 
-        percent_clear = np.mean([np.mean(path_clear_m), np.mean(path_clear_l), np.mean(path_clear_r)])  # from 0 to 1
+        percent_clear = 1 - np.mean([np.mean(path_clear_m), np.mean(path_clear_l), np.mean(path_clear_r)])  # from 0 to 1
 
         if percent_clear >= 0.95:
+            print('$$$ Path is clear. Path is ',percent_clear,' percent clear $$$') 
             path_clear = True
         else:
+            print('$$$ Path NOT clear. Path is ',percent_clear,' percent clear')
             path_clear = False
 
         # for idx in range(len(middle_line_x)):
@@ -245,19 +245,22 @@ class Mapping:
         """
         
         print('--Updateing occupancy grid...---') 
+        st = time.time()
         for idx, ray in enumerate(polar_length):
             
             # Play a sound so you don't get bored as it updates
             Sound.tone(100*polar_angle[idx]/40, 30)  # Frequency [Hz], duration [ms]
             
-            x_ray = robot_x + ray * math.cos(math.radians(polar_angle[idx]))  # cartesian components of the ray
-            y_ray = robot_y + ray * math.sin(math.radians(polar_angle[idx]))
+            x_ray = robot_x + ray * np.cos(np.radians(polar_angle[idx]))  # cartesian components of the ray
+            y_ray = robot_y + ray * np.sin(np.radians(polar_angle[idx]))
 
             #x_idx, y_idx = self.coord_to_index(x_ray, y_ray)
             #print('Ray end point: ',x_ray,y_ray,'Index: ',x_idx,y_idx) 	
             #self.ZZ[y_idx][x_idx] = 1  # TODO: This is a great place to implement a sensor model.
             self.update_grid_point(x_ray,y_ray) # updating the grid points values according to a gaussian model
 
+        ed = time.time()
+        print("Time taken to upgrade meshgrid", ed -st)
         Sound.tone(921, 200)
         '''Normalize the meshgrid'''
         
@@ -296,8 +299,8 @@ class Mapping:
             self.mS.run_to_abs_pos(position_sp=(theta*self.gear_ratio+motor_desired_position), stop_action='hold')
             self.mS.wait_while('running')
             length = self.ultra1.distance_centimeters
-            #if length >= self.max_range:
-            #    length = 5*self.max_range  # Make the measurement inf incase the sensor doesn't read in range
+            if length >= self.max_range:
+                length = 5*self.max_range  # Make the measurement inf incase the sensor doesn't read in range
             polar_length.append(length)
             polar_angle.append(theta)
 
@@ -320,9 +323,9 @@ class Mapping:
         :return:
         """
         sigma = self.sensor_model_variance
-        weight = 2000
-        cm_x = 20  # How many centimeters in the x or y direction to apply the gaussian to
-        cm_y = 20
+        weight = 4000
+        cm_x = 15  # How many centimeters in the x or y direction to apply the gaussian to
+        cm_y = 15
         Nx = (cm_x)/self.resolution + 1
         Ny = (cm_y)/self.resolution + 1
 
@@ -330,7 +333,7 @@ class Mapping:
             for y in np.linspace(mu_y - cm_y/2, mu_y + cm_y/2, Ny):
                 x_idx, y_idx = self.coord_to_index(x, y)
                 # print("Writing bump to: [", x_idx, ", ", y_idx, "]")
-                self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * (((x - mu_x) ** 2) + ((y -mu_y) ** 2) / (2 * sigma ** 2)))
+                self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * ((((x - mu_x) ** 2) + ((y -mu_y) ** 2)) / (2 * sigma ** 2)))
 
 
     def update_grid_bump(self, x_line, y_line):
@@ -358,4 +361,4 @@ class Mapping:
                 for y in np.linspace(mu_y - cm_y/2, mu_y + cm_y/2, Ny):
                     x_idx, y_idx = self.coord_to_index(x, y)
                     #print("Writing bump to: [", x_idx, ", ", y_idx, "]")
-                    self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * (((x - mu_x)**2) + ((y - mu_y)**2) / (2 * sigma ** 2)))
+                    self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * ((((x - mu_x) ** 2) + ((y -mu_y) ** 2)) / (2 * sigma ** 2)))

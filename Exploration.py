@@ -125,7 +125,6 @@ class Exploration:
           lt = []
           count = 0
           print("Finding the next point to move")
-          print(self.inf)
           print("Start x"+ str(self.start_x))
           print("Start y"+ str(self.start_y))
           print("Goal x"+ str(self.goal_x))
@@ -208,7 +207,7 @@ class Exploration:
               if self.number_of_moves>self.maximum_moves:
                    return((self.start_x, self.start_y), self.inf,False)
               self.triggerMovement(self.start_x,self.start_y)
-              self.start_x , self.start_y, ppp  = self.pose()
+              self.start_x , self.start_y, ppp  = self.mover.pose()
               return(self.controller())
           else:
               return((self.start_x, self.start_y), self.inf, True)

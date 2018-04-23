@@ -256,6 +256,7 @@ class Move:
 
         time.sleep(0.5)
         self.kalman_f_turn(rel_angle)
-
+        
+        print('### Pose: ', self.pose(), ' ###')
         # TODO: Return the x and y values of where the robot is at for the exploration to make use of
         print('### Move Complete ###')

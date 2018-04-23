@@ -38,8 +38,7 @@ class Util:
               break
            L.append(next)
 
-            self.ZZ[y_idx][x_idx] + (1 / (2 * math.pi * sigma ** 2)) * np.exp(
-                -1 * ((np.pow((x - mu_x), 2) + (np.pow(y - mu_y), 2)) / (2 * sigma ** 2)))
+           #self.ZZ[y_idx][x_idx] + (1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * ((np.pow((x - mu_x), 2) + (np.pow(y - mu_y), 2)) / (2 * sigma ** 2)))
 
         return L
 
