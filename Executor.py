@@ -52,14 +52,14 @@ class Executor:
               values = phases["Phase "+ str(pointer)]   
               From = (robot_start_posx, robot_start_posy)
               To = values[1]
-              explore = Exploration(From[0], From[1], To[0], To[1], {}, mapper, move, priorInf)
-              (robot_start_posx, robot_start_posy), priorInf, explore = explore.controller()
+              explore_obj = Exploration(From[0], From[1], To[0], To[1], {}, mapper, move, priorInf)
+              (robot_start_posx, robot_start_posy), priorInf, explore = explore_obj.controller()
               if(explore == True):
                   print("Successfully Traversed Phase "+ str(pointer))
               else:
                   print("Terminating Exploration of Environment")
                   print("No. of phases explored :- "+ str(pointer))
                   break
-          if move.number_of_moves>move.maximum_moves and explore==False:
+          if explore_obj.number_of_moves>move.maximum_moves and explore==False:
              print("Maximum number of moves have been exceeded")
              #explore = Exploration()

@@ -2,7 +2,7 @@ from util import Util as util
 import math
 import time
 import csv
-import numpy as np
+import scipy.stats as st,numpy as np
 from ev3dev.ev3 import *
 
 class Mapping:
@@ -81,14 +81,20 @@ class Mapping:
         	self.ZZ[y][x] = 0
         
         '''Threshold for obstacle detection'''
-        self.obs_threshold = 2.5
+        self.obs_threshold = 1.5
 
-        self.sensor_model_variance = 25
+        self.sensor_model_variance = 10
         self.resolution = res
         self.minX = minX
         self.minY = minY
         self.maxX = maxX
         self.maxY = maxY
+        cm_x = 10
+        Nx = (cm_x)/self.resolution + 1
+        self.update_bump_kernel = self.gkern(kernlen=Nx, nsig=4)
+        cm_x = 15
+        Nx = (cm_x)/self.resolution + 1
+        self.update_grid_kernel = self.gkern(kernlen=Nx, nsig=self.sensor_model_variance)
         
         with open("occupancy_grid_init.csv", "w") as f:
             writer = csv.writer(f)
@@ -205,7 +211,7 @@ class Mapping:
 
         percent_clear = 1 - np.mean([np.mean(path_clear_m), np.mean(path_clear_l), np.mean(path_clear_r)])  # from 0 to 1
 
-        if percent_clear >= 0.95:
+        if percent_clear >= 0.75:
             print('$$$ Path is clear. Path is ',percent_clear,' percent clear $$$') 
             path_clear = True
         else:
@@ -323,17 +329,19 @@ class Mapping:
         :return:
         """
         sigma = self.sensor_model_variance
-        weight = 4000
+        weight = 2
         cm_x = 15  # How many centimeters in the x or y direction to apply the gaussian to
         cm_y = 15
         Nx = (cm_x)/self.resolution + 1
-        Ny = (cm_y)/self.resolution + 1
-
-        for x in np.linspace(mu_x - cm_x/2, mu_x + cm_x/2, Nx):
-            for y in np.linspace(mu_y - cm_y/2, mu_y + cm_y/2, Ny):
+        Ny = (cm_y)/self.resolution + 1	
+        kernel = self.update_grid_kernel
+        for x_index,x in enumerate(np.linspace(mu_x - cm_x/2, mu_x + cm_x/2, Nx)):
+            for y_index,y in enumerate(np.linspace(mu_y - cm_y/2, mu_y + cm_y/2, Ny)):
                 x_idx, y_idx = self.coord_to_index(x, y)
                 # print("Writing bump to: [", x_idx, ", ", y_idx, "]")
-                self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * ((((x - mu_x) ** 2) + ((y -mu_y) ** 2)) / (2 * sigma ** 2)))
+                #self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * ((((x - mu_x) ** 2) + ((y -mu_y) ** 2)) / (2 * sigma ** 2)))
+                self.ZZ[y_idx][x_idx] += weight*kernel[y_index][x_index]                
+
 
 
     def update_grid_bump(self, x_line, y_line):
@@ -345,7 +353,7 @@ class Mapping:
         :return:
         """
         sigma = 4  # Variance of bump sensor in cm
-        weight = 50
+        weight = 5
         cm_x = 10
         cm_y = 10
         Nx = (cm_x)/self.resolution + 1
@@ -353,12 +361,22 @@ class Mapping:
 
         print("Updating grid with bump")
         print("Updating this many elements for bump", len(x_line)*11**2)
+        
+        kernel = self.update_bump_kernel
         for idx,num in enumerate(x_line):
             mu_x = x_line[idx]
-            mu_y = y_line[idx]
-
-            for x in np.linspace(mu_x - cm_x/2, mu_x + cm_x/2, Nx):
-                for y in np.linspace(mu_y - cm_y/2, mu_y + cm_y/2, Ny):
+            mu_y = y_line[idx]    
+            for x_index,x in enumerate(np.linspace(mu_x - cm_x/2, mu_x + cm_x/2, Nx)):
+                for y_index,y in enumerate(np.linspace(mu_y - cm_y/2, mu_y + cm_y/2, Ny)):
                     x_idx, y_idx = self.coord_to_index(x, y)
                     #print("Writing bump to: [", x_idx, ", ", y_idx, "]")
-                    self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * ((((x - mu_x) ** 2) + ((y -mu_y) ** 2)) / (2 * sigma ** 2)))
+                    #self.ZZ[y_idx][x_idx] = self.ZZ[y_idx][x_idx] + weight*(1 / (2 * math.pi * sigma ** 2)) * np.exp(-1 * ((((x - mu_x) ** 2) + ((y -mu_y) ** 2)) / (2 * sigma ** 2)))
+                    self.ZZ[y_idx][x_idx] += weight*kernel[y_index][x_index]
+    def gkern(self,kernlen=21, nsig=3):
+            """Returns a 2D Gaussian kernel array."""
+            interval = (2*nsig+1.)/(kernlen)
+            x = np.linspace(-nsig-interval/2., nsig+interval/2., kernlen+1)
+            kern1d = np.diff(st.norm.cdf(x))
+            kernel_raw = np.sqrt(np.outer(kern1d, kern1d))
+            kernel = kernel_raw/kernel_raw.sum()
+            return kernel                

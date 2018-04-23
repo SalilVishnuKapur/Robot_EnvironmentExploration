@@ -109,7 +109,7 @@ class Util:
         """
         while angle < -math.pi:
             angle = angle + 2*math.pi
-        while angle > math.pi:
+        while angle >= math.pi:
             angle = angle - 2*math.pi
 
         return angle
@@ -123,7 +123,7 @@ class Util:
         """
         while angle < 0:
             angle = angle + 2*math.pi
-        while angle > 2*math.pi:
+        while angle >= 2*math.pi:
             angle = angle - 2*math.pi
 
         return angle

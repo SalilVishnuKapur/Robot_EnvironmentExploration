@@ -28,8 +28,9 @@ class Exploration:
           self.mover = move
           self.priorInf = prevInf
           self.dangerChecker = DangerChecker()
-          self.maximum_moves = 10
+          self.maximum_moves = 4
           self.number_of_moves = 0
+          self.discontinuity = 21
       def distanceBetweenPoints(self, st_x, st_y, end_x, end_y):
           '''
           Finds the distance between two points.
@@ -139,20 +140,22 @@ class Exploration:
               if(val < 255.0):
                  if((key-10 in self.inf.keys()) and (key+10 in self.inf.keys())):
                     # 2 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 10 or  self.distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > 10):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > self.discontinuity or  self.distanceBetweenPoints(self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key)), self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10))) > self.discontinuity):
                        lt.append((self.start_x + (val-5)* math.cos(Util.deg2rad(key)), self.start_y + (val-5)* math.sin(Util.deg2rad(key))))
                  elif(key-10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 10):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key-10] * math.cos(Util.deg2rad(key-10)), self.start_y + self.inf[key-10] * math.sin(Util.deg2rad(key-10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > self.discontinuity):
                        lt.append((self.start_x + (val-5)* math.cos(Util.deg2rad(key)), self.start_y + (val-5) * math.sin(Util.deg2rad(key))))
                  elif(key+10 in self.inf.keys()):
                     # 1 Distance Comparison
-                    if(self.distanceBetweenPoints(self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > 10):
+                    if(self.distanceBetweenPoints(self.start_x + self.inf[key+10] * math.cos(Util.deg2rad(key+10)), self.start_y + self.inf[key+10] * math.sin(Util.deg2rad(key+10)), self.start_x + self.inf[key] * math.cos(Util.deg2rad(key)), self.start_y + self.inf[key] * math.sin(Util.deg2rad(key))) > self.discontinuity):
                        lt.append((self.start_x + (val-15)* math.cos(Util.deg2rad(key)), self.start_y + (val-15) * math.sin(Util.deg2rad(key))))
           minDistance = 99999999999999
           minPoint = (self.goal_x, self.goal_y)
+          print("All the discontinuity points are :- ", lt)
           for point in lt:
                   dis = self.distanceBetweenPoints(self.start_x, self.start_y, point[0], point[1]) + self.distanceBetweenPoints(point[0], point[1], self.goal_x, self.goal_y)
+                  print(" For point ", point, "the distance would had been ", dis)
                   if(minDistance > dis):
                      minDistance =  dis
                      minPoint = point
@@ -193,7 +196,11 @@ class Exploration:
              self.priorInf = {}
 
       def controller(self):
+    
           if(self.checkPriorInf() == "Do_Mapper_Scan"):
+              if(self.start_x == 48.26 and self.start_y == -125.73 ):
+                   self.triggerMovement(self.goal_x,self.goal_y)
+                   return((self.goal_x, self.goal_y), self.inf, True)
               self.inf = self.refereshMapping()
           if(self.distanceBetweenPoints(self.start_x, self.start_y, self.goal_x, self.goal_y) > 30  and self.danger() == False):
               self.angle = self.slopeAngle(self.goal_y - self.start_y, self.goal_x - self.start_x)

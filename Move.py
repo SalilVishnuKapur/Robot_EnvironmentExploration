@@ -29,7 +29,7 @@ class Move:
         self.gyro_initial = self.gyro.value()
 
         '''Turning Kalman filter info'''
-        self.mu_turn = math.pi/2
+        self.mu_turn = phi
         #self.S_turn = np.array([[0, 0], [0, 0]])
         self.S_turn = 1
 
@@ -116,6 +116,8 @@ class Move:
         self.mL.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
         self.mR.run_to_rel_pos(position_sp=counts_to_wp, speed_sp=self.fwd_speed, stop_action='hold')
 
+        self.x = self.x - backup_dist * np.cos(self.phi+math.pi)
+        self.y = self.y - backup_dist * np.sin(self.phi+math.pi)
 
 
     def kalman_f_turn(self, rel_angle):
@@ -131,7 +133,7 @@ class Move:
         A = 1
         B = -1  # negative because +rel_angle is CW, whereas + phi is CCW
         C = 1  # again negative for the same reasons
-        Q = math.radians(1.3)  # Motion noise
+        Q = math.radians(1)  # Motion noise
         R = math.radians(3)  # Measurement noise        
 
         '''Get Gyro reading'''
@@ -177,12 +179,12 @@ class Move:
         arc_length_to_turn = abs((self.axle_length/2)*rel_angle)
         counts_in_turn = int((arc_length_to_turn/self.radius_wheel)*(180/math.pi))
         
-        if(rel_angle > 1):  # turn clockwise
+        if(rel_angle > 0):  # turn clockwise
             self.mL.run_to_rel_pos(position_sp=counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
             self.mR.run_to_rel_pos(position_sp=-counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
             self.mL.wait_while('running')
             self.mR.wait_while('running')
-        elif(counts_in_turn is 0):
+        elif(rel_angle < 1) and (rel_angle > -1):
             print("Don't do anything")
         else:  # Turn CCW
             self.mL.run_to_rel_pos(position_sp=-counts_in_turn, speed_sp=self.turn_speed, stop_action='hold')
@@ -255,8 +257,10 @@ class Move:
         self.mR.wait_while('running')  # Wait for the right motor to stop running (shouldn't be much longer than left)
 
         time.sleep(0.5)
-        self.kalman_f_turn(rel_angle)
-        
-        print('### Pose: ', self.pose(), ' ###')
+        # self.kalman_f_turn(rel_angle)
+        self.phi = phi - rel_angle        
+
+        x, y, phi = self.pose()
+        print('### Pose [x, y, phi(deg)]: ',x, y, math.degrees(phi) , ' ###')
         # TODO: Return the x and y values of where the robot is at for the exploration to make use of
         print('### Move Complete ###')
