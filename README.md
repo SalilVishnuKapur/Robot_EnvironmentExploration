@@ -1,1 +1,7 @@
-# Robot_EnvironmentExploration
+#                                  Robot_EnvironmentExploration
+
+Unexplored, enclosed environments represent a common challenge in autonomous robotics. Robotic staging areas such as mine shafts, collapsed buildings, or even a common home for  an  autonomous  vacuum  cleaner  are  all  prime  examples. The objective  of the development of this robot was to create an  autonomous  wheeled  mobile  vehicle  capable  of  entering and exiting an unknown enclosed environment, and producing a  map  of  the  space  for  an  operator  to  interpret  in  post-processing.   
+
+Obstacle   mapping   in   robotics   involves   an amalgamation    of    three    key    modules,    path    planning, localization and accurate sensor modeling. Without all three of these  elements  obtaining  reliable  readings  as  a  robot  travels through an environment is impossible.There exists a plethora of algorithms that may be applied to  each  individual  element  that  will  enable  the  successful mapping   on   an   unknown   environment   such   as   SLAM, RANSAC, and the bug path planning methods. However, as the  chosen  implementation  platform  was  the  LEGO  EV3 robot, which only has a 300MHz single-core processor and a limited  64MB of  RAM,  algorithms  must be  lightweight  and optimized to run or maintain an acceptable execution time [1]. This  creates  a  level  of  difficulty  in  that  advanced,  reliable algorithms   such   as   SLAM   and   RANSAC   may   not   be employed unless stripped down to their rawest elements
+
+For complete project description go to :-  https://github.com/SalilVishnuKapur/Robot_EnvironmentExploration/blob/master/Robotics_Capstone_Paper.pdf
